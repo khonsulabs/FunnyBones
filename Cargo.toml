@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 
 [[example]]
-name = "toy"
+name = "skeleton"
 required-features = ["cushy"]
 
 [dependencies]

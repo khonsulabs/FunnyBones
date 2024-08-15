@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![doc = include_str!(".crate-docs.md")]
 
 use std::{
     collections::{HashMap, HashSet},

@@ -20,6 +20,7 @@ use cushy::{
 use funnybones::{BoneId, BoneKind, JointId, Rotation, Skeleton, Vector};
 
 fn main() {
+    // begin rustme snippet: readme
     let mut skeleton = Skeleton::default();
     let spine = skeleton.push_bone(BoneKind::Rigid { length: 3. }, "spine");
     let r_hip = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "r_hip");
@@ -81,6 +82,7 @@ fn main() {
     let r_arm_socket =
         skeleton.push_joint(Rotation::degrees(-90.), r_shoulder.axis_b(), r_arm.axis_a());
     let r_wrist_id = skeleton.push_joint(Rotation::degrees(175.), r_arm.axis_b(), r_hand.axis_a());
+    // end rustme snippet
 
     let skeleton = Dynamic::new(skeleton);
 
