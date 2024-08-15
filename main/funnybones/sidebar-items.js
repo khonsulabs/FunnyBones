@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BoneEnd","BoneKind"],"struct":["Bone","BoneAxis","BoneId","Joint","JointId","Rotation","Skeleton","Vector"]};

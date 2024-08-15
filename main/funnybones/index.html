@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="FunnyBones"><title>funnybones - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b25d77b18a16a9a4.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="funnybones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (13a52890d 2024-08-14)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-cb0df477c2d67d00.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../funnybones/index.html">funnybones</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">funnybones</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/funnybones/lib.rs.html#1-661">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="funnybones"><a class="doc-anchor" href="#funnybones">§</a>FunnyBones</h2>
+<p>A simple 2D kinematics library for Rust</p>
+<h3 id="motivation-and-goals"><a class="doc-anchor" href="#motivation-and-goals">§</a>Motivation and Goals</h3>
+<p>When looking at the libraries that support inverse kinematics in Rust in 2024,
+there are several fairly mature solutions that focus on 3D and robotics. For
+someone interested in 2D only, a lot of these libraries seemed like overkill for
+basic 2D games.</p>
+<p>This library implements a simplified forward and inverse kinematics model that
+only uses basic trigonometry and can be solved in one pass across the bone
+structure with no smoothing algorithms necessary. The initial implementation of
+this library was under 600 lines of code with no required dependencies.</p>
+<h3 id="how-funnybones-works"><a class="doc-anchor" href="#how-funnybones-works">§</a>How FunnyBones works</h3>
+<p>FunnyBones has two main concepts: joints and bones.</p>
+<ul>
+<li>
+<p><em>Joints</em> are used to connect a specific end of one bone to a specific end of
+another bone. Each joint can be assigned an angle which is applied as <em>forward
+kinematics</em> to create the angle using the two associated bones.</p>
+</li>
+<li>
+<p><em>Bones</em> are one-dimensional line segments that have a required length. Bones
+can have a <em>desired position</em> for the end of the bone positioned furthest from
+the skeleton root. If the desired position is set, it is applied as <em>inverse
+kinematics</em>.</p>
+<p>In FunnyBones, bones come in two varieties:</p>
+<ul>
+<li><em>Rigid</em> bones are a single line segment of a fixed length. An example of a
+rigid bone in a simple human skeleton might be a single bone representing
+the spine.</li>
+<li><em>Flexible</em> bones are two line segments of fixed lengths that bend and rotate
+automatically (ignoring the connecting joint’s angle) to ensure that both
+leg segments are always the correct length. An example of a flexible bone in
+a simple human skeleton might be a leg or an arm.</li>
+</ul>
+</li>
+</ul>
+<p>A <code>Skeleton</code> is a collection of joints and bones. The first bone pushed is
+considered the root bone. When solving for updated positions, the algorithm
+starts by evaluating all joints connected to both ends of the root bone and
+continues until all reachable bones have been evaluated. The algorithm is
+single-pass and produces stable results.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Bone.html" title="struct funnybones::Bone">Bone</a></div><div class="desc docblock-short">A bone in a <a href="struct.Skeleton.html" title="struct funnybones::Skeleton"><code>Skeleton</code></a>.</div></li><li><div class="item-name"><a class="struct" href="struct.BoneAxis.html" title="struct funnybones::BoneAxis">Bone<wbr>Axis</a></div><div class="desc docblock-short">A specific end of a specific bone.</div></li><li><div class="item-name"><a class="struct" href="struct.BoneId.html" title="struct funnybones::BoneId">BoneId</a></div><div class="desc docblock-short">The unique ID of a <a href="struct.Bone.html" title="struct funnybones::Bone"><code>Bone</code></a> in a <a href="struct.Skeleton.html" title="struct funnybones::Skeleton"><code>Skeleton</code></a>.</div></li><li><div class="item-name"><a class="struct" href="struct.Joint.html" title="struct funnybones::Joint">Joint</a></div><div class="desc docblock-short">A connection between two bones.</div></li><li><div class="item-name"><a class="struct" href="struct.JointId.html" title="struct funnybones::JointId">JointId</a></div><div class="desc docblock-short">The unique ID of a <a href="struct.Joint.html" title="struct funnybones::Joint"><code>Joint</code></a> in a <a href="struct.Skeleton.html" title="struct funnybones::Skeleton"><code>Skeleton</code></a>.</div></li><li><div class="item-name"><a class="struct" href="struct.Rotation.html" title="struct funnybones::Rotation">Rotation</a></div><div class="desc docblock-short">A value representing a rotation between no rotation and a full rotation.</div></li><li><div class="item-name"><a class="struct" href="struct.Skeleton.html" title="struct funnybones::Skeleton">Skeleton</a></div><div class="desc docblock-short">A collection of <a href="struct.Bone.html" title="struct funnybones::Bone"><code>Bone</code></a>s. connected by <a href="struct.Joint.html" title="struct funnybones::Joint"><code>Joint</code></a>s.</div></li><li><div class="item-name"><a class="struct" href="struct.Vector.html" title="struct funnybones::Vector">Vector</a></div><div class="desc docblock-short">A two dimensionsional offset/measurement.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.BoneEnd.html" title="enum funnybones::BoneEnd">BoneEnd</a></div><div class="desc docblock-short">A specific end of a <a href="struct.Bone.html" title="struct funnybones::Bone"><code>Bone</code></a>.</div></li><li><div class="item-name"><a class="enum" href="enum.BoneKind.html" title="enum funnybones::BoneKind">Bone<wbr>Kind</a></div><div class="desc docblock-short">A representation of a bone structure inside of a <a href="struct.Skeleton.html" title="struct funnybones::Skeleton"><code>Skeleton</code></a>.</div></li></ul></section></div></main></body></html>
