@@ -12,9 +12,6 @@ required-features = ["cushy"]
 [dependencies]
 cushy = { git = "https://github.com/khonsulabs/cushy", optional = true }
 
-[dev-dependencies]
-cushy = { git = "https://github.com/khonsulabs/cushy" }
-
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 module_name_repetitions = "allow"
