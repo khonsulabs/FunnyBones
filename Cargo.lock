@@ -624,6 +624,7 @@ checksum = "96a6ac251f4a2aca6b3f91340350eab87ae57c3f127ffeb585e92bd336717991"
 [[package]]
 name = "cushy"
 version = "0.3.0"
+source = "git+https://github.com/khonsulabs/cushy#6726855ed06ed0f0b03157363b4cecb3869ba500"
 dependencies = [
  "ahash",
  "alot",
@@ -649,6 +650,7 @@ dependencies = [
 [[package]]
 name = "cushy-macros"
 version = "0.3.0"
+source = "git+https://github.com/khonsulabs/cushy#6726855ed06ed0f0b03157363b4cecb3869ba500"
 dependencies = [
  "attribute-derive",
  "manyhow 0.11.3",
@@ -890,6 +892,13 @@ name = "foreign-types-shared"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
+
+[[package]]
+name = "funnybones"
+version = "0.1.0"
+dependencies = [
+ "cushy",
+]
 
 [[package]]
 name = "gethostname"
@@ -2531,13 +2540,6 @@ name = "siphasher"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38b58827f4464d87d377d175e90bf58eb00fd8716ff0a62f80356b5e61555d0d"
-
-[[package]]
-name = "skeleton"
-version = "0.1.0"
-dependencies = [
- "cushy",
-]
 
 [[package]]
 name = "skrifa"

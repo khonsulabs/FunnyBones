@@ -1,7 +1,26 @@
 [package]
-name = "skeleton"
+name = "funnybones"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+
+[[example]]
+name = "toy"
+required-features = ["cushy"]
+
 [dependencies]
-cushy = { path = "../cushy" }
+cushy = { git = "https://github.com/khonsulabs/cushy", optional = true }
+
+[dev-dependencies]
+cushy = { git = "https://github.com/khonsulabs/cushy" }
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
