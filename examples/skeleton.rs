@@ -1,4 +1,5 @@
 //! A basic 2d humanoid skeleton with sliders powered by Cushy.
+#![allow(clippy::too_many_lines)]
 use core::f32;
 use std::ops::RangeInclusive;
 

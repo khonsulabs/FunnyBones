@@ -1,10 +1,11 @@
 #![doc = include_str!(".crate-docs.md")]
 
 use std::{
+    borrow::Borrow,
     collections::{HashMap, HashSet},
     f32::consts::PI,
     fmt::{Debug, Display},
-    ops::{Add, Index, IndexMut, Neg, Sub},
+    ops::{Add, Deref, Index, IndexMut, Neg, Sub},
     sync::Arc,
 };
 
@@ -226,6 +227,29 @@ impl From<BoneKind> for LabeledBoneKind {
     }
 }
 
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+struct ArcString(Arc<String>);
+
+impl PartialEq<str> for ArcString {
+    fn eq(&self, other: &str) -> bool {
+        &**self == other
+    }
+}
+
+impl Deref for ArcString {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Borrow<str> for ArcString {
+    fn borrow(&self) -> &str {
+        self
+    }
+}
+
 /// A collection of [`Bone`]s. connected by [`Joint`]s.
 #[derive(Default, Debug)]
 pub struct Skeleton {
@@ -234,8 +258,8 @@ pub struct Skeleton {
     joints: Vec<Joint>,
     connections: HashMap<BoneAxis, Vec<JointId>>,
     generation: usize,
-    bones_by_label: HashMap<Arc<String>, BoneId>,
-    joints_by_label: HashMap<Arc<String>, JointId>,
+    bones_by_label: HashMap<ArcString, BoneId>,
+    joints_by_label: HashMap<ArcString, JointId>,
 }
 
 impl Skeleton {
@@ -256,7 +280,7 @@ impl Skeleton {
         let label = if bone.label.is_empty() {
             None
         } else {
-            let label = Arc::new(bone.label);
+            let label = ArcString(Arc::new(bone.label));
             self.bones_by_label.insert(label.clone(), id);
             Some(label)
         };
@@ -287,6 +311,18 @@ impl Skeleton {
             self.connections.entry(bone_b).or_default().push(id);
         }
         id
+    }
+
+    /// Finds an existing [`Joint`] by its label.
+    #[must_use]
+    pub fn find_joint_by_label(&self, label: &str) -> Option<JointId> {
+        self.joints_by_label.get(label).copied()
+    }
+
+    /// Finds an existing [`Bone`] by its label.
+    #[must_use]
+    pub fn find_bone_by_label(&self, label: &str) -> Option<BoneId> {
+        self.bones_by_label.get(label).copied()
     }
 
     /// Sets a translation to be applied to the entire skeleton.
@@ -545,7 +581,7 @@ impl BoneAxis {
 #[derive(Debug)]
 pub struct Bone {
     generation: usize,
-    label: Option<Arc<String>>,
+    label: Option<ArcString>,
     kind: BoneKind,
     start: Vector,
     joint_pos: Option<Vector>,
@@ -599,7 +635,7 @@ impl Bone {
 /// A connection between two bones.
 #[derive(Debug)]
 pub struct Joint {
-    label: Option<Arc<String>>,
+    label: Option<ArcString>,
     bone_a: BoneAxis,
     bone_b: BoneAxis,
     calculated_position: Vector,
@@ -624,7 +660,7 @@ impl Joint {
     pub fn with_label(mut self, label: impl Into<String>) -> Self {
         let label = label.into();
         if !label.is_empty() {
-            self.label = Some(Arc::new(label));
+            self.label = Some(ArcString(Arc::new(label)));
         }
         self
     }
