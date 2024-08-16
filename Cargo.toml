@@ -11,6 +11,10 @@ required-features = ["cushy"]
 
 [dependencies]
 cushy = { git = "https://github.com/khonsulabs/cushy", optional = true }
+serde = { version = "1.0.208", optional = true, features = ["derive"] }
+
+[dev-dependencies]
+pot = "3.0.0"
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }

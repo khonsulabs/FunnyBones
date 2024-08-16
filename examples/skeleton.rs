@@ -17,17 +17,21 @@ use cushy::{
     widgets::{slider::Slidable, Canvas},
     Run,
 };
-use funnybones::{BoneId, BoneKind, JointId, Rotation, Skeleton, Vector};
+use funnybones::{BoneId, BoneKind, Joint, JointId, Rotation, Skeleton, Vector};
 
 fn main() {
     // begin rustme snippet: readme
     let mut skeleton = Skeleton::default();
     // Create our root bone: the spine
-    let spine = skeleton.push_bone(BoneKind::Rigid { length: 3. }, "spine");
+    let spine = skeleton.push_bone(BoneKind::Rigid { length: 3. }.with_label("spine"));
     // Create the right-half of the hips.
-    let r_hip = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "r_hip");
+    let r_hip = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("r_hip"));
     // Connect the right hip to the spine.
-    skeleton.push_joint(Rotation::degrees(-90.), spine.axis_a(), r_hip.axis_a());
+    skeleton.push_joint(Joint::new(
+        Rotation::degrees(-90.),
+        spine.axis_a(),
+        r_hip.axis_a(),
+    ));
     // Create the right leg as a jointed bone with equal sizes for the upper and
     // lower leg.
     let r_leg = skeleton.push_bone(
@@ -35,67 +39,113 @@ fn main() {
             start_length: 1.5,
             end_length: 1.5,
             inverse: true,
-        },
-        "r_leg",
+        }
+        .with_label("r_leg"),
     );
 
     // Connect the right leg to the right hip.
-    skeleton.push_joint(Rotation::degrees(-90.), r_hip.axis_b(), r_leg.axis_a());
+    skeleton.push_joint(Joint::new(
+        Rotation::degrees(-90.),
+        r_hip.axis_b(),
+        r_leg.axis_a(),
+    ));
     // Create the right foot.
-    let r_foot = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "r_foot");
+    let r_foot = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("r_foot"));
     // Connect the right foot to the right leg.
-    let r_ankle_id = skeleton.push_joint(Rotation::degrees(90.), r_leg.axis_b(), r_foot.axis_a());
+    let r_ankle_id = skeleton.push_joint(Joint::new(
+        Rotation::degrees(90.),
+        r_leg.axis_b(),
+        r_foot.axis_a(),
+    ));
     // end rustme snippet
 
     // Create the left-half of our lower half.
-    let l_hip = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "l_hip");
-    skeleton.push_joint(Rotation::degrees(90.), spine.axis_a(), l_hip.axis_a());
+    let l_hip = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("l_hip"));
+    skeleton.push_joint(Joint::new(
+        Rotation::degrees(90.),
+        spine.axis_a(),
+        l_hip.axis_a(),
+    ));
     let l_leg = skeleton.push_bone(
         BoneKind::Jointed {
             start_length: 1.5,
             end_length: 1.5,
             inverse: false,
-        },
-        "l_leg",
+        }
+        .with_label("l_leg"),
     );
-    skeleton.push_joint(Rotation::degrees(90.), l_hip.axis_b(), l_leg.axis_a());
-    let l_foot = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "l_foot");
-    let l_ankle_id = skeleton.push_joint(Rotation::degrees(-90.), l_leg.axis_b(), l_foot.axis_a());
+    skeleton.push_joint(Joint::new(
+        Rotation::degrees(90.),
+        l_hip.axis_b(),
+        l_leg.axis_a(),
+    ));
+    let l_foot = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("l_foot"));
+    let l_ankle_id = skeleton.push_joint(Joint::new(
+        Rotation::degrees(-90.),
+        l_leg.axis_b(),
+        l_foot.axis_a(),
+    ));
 
     // Create our two arms in the same fashion as our leg structure.
-    let r_shoulder = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "r_shoulder");
-    skeleton.push_joint(Rotation::degrees(-90.), spine.axis_b(), r_shoulder.axis_a());
+    let r_shoulder = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("r_shoulder"));
+    skeleton.push_joint(Joint::new(
+        Rotation::degrees(-90.),
+        spine.axis_b(),
+        r_shoulder.axis_a(),
+    ));
     let r_arm = skeleton.push_bone(
         BoneKind::Jointed {
             start_length: 1.0,
             end_length: 1.0,
             inverse: true,
-        },
-        "r_arm",
+        }
+        .with_label("r_arm"),
     );
-    let r_arm_socket =
-        skeleton.push_joint(Rotation::degrees(-90.), r_shoulder.axis_b(), r_arm.axis_a());
-    let r_hand = skeleton.push_bone(BoneKind::Rigid { length: 0.3 }, "r_hand");
-    let r_wrist_id = skeleton.push_joint(Rotation::degrees(175.), r_arm.axis_b(), r_hand.axis_a());
+    let r_arm_socket = skeleton.push_joint(Joint::new(
+        Rotation::degrees(-90.),
+        r_shoulder.axis_b(),
+        r_arm.axis_a(),
+    ));
+    let r_hand = skeleton.push_bone(BoneKind::Rigid { length: 0.3 }.with_label("r_hand"));
+    let r_wrist_id = skeleton.push_joint(Joint::new(
+        Rotation::degrees(175.),
+        r_arm.axis_b(),
+        r_hand.axis_a(),
+    ));
 
-    let l_shoulder = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "l_shoulder");
-    skeleton.push_joint(Rotation::degrees(90.), spine.axis_b(), l_shoulder.axis_a());
+    let l_shoulder = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("l_shoulder"));
+    skeleton.push_joint(Joint::new(
+        Rotation::degrees(90.),
+        spine.axis_b(),
+        l_shoulder.axis_a(),
+    ));
     let l_arm = skeleton.push_bone(
         BoneKind::Jointed {
             start_length: 1.0,
             end_length: 1.0,
             inverse: false,
-        },
-        "l_arm",
+        }
+        .with_label("l_arm"),
     );
-    let l_arm_socket =
-        skeleton.push_joint(Rotation::degrees(90.), l_shoulder.axis_b(), l_arm.axis_a());
-    let l_hand = skeleton.push_bone(BoneKind::Rigid { length: 0.3 }, "l_hand");
-    let l_wrist_id = skeleton.push_joint(Rotation::degrees(-175.), l_arm.axis_b(), l_hand.axis_a());
+    let l_arm_socket = skeleton.push_joint(Joint::new(
+        Rotation::degrees(90.),
+        l_shoulder.axis_b(),
+        l_arm.axis_a(),
+    ));
+    let l_hand = skeleton.push_bone(BoneKind::Rigid { length: 0.3 }.with_label("l_hand"));
+    let l_wrist_id = skeleton.push_joint(Joint::new(
+        Rotation::degrees(-175.),
+        l_arm.axis_b(),
+        l_hand.axis_a(),
+    ));
 
     // Finally, create a bone to represent our head.
-    let head = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }, "head");
-    let neck = skeleton.push_joint(Rotation::degrees(180.), spine.axis_b(), head.axis_a());
+    let head = skeleton.push_bone(BoneKind::Rigid { length: 0.5 }.with_label("head"));
+    let neck = skeleton.push_joint(Joint::new(
+        Rotation::degrees(180.),
+        spine.axis_b(),
+        head.axis_a(),
+    ));
 
     let skeleton = Dynamic::new(skeleton);
 

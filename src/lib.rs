@@ -5,10 +5,15 @@ use std::{
     f32::consts::PI,
     fmt::{Debug, Display},
     ops::{Add, Index, IndexMut, Neg, Sub},
+    sync::Arc,
 };
+
+#[cfg(feature = "serde")]
+mod serde;
 
 /// A two dimensionsional offset/measurement.
 #[derive(Default, Clone, Copy, PartialEq, Debug)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct Vector {
     /// The x-axis component of this vector.
     pub x: f32,
@@ -66,6 +71,7 @@ impl cushy::figures::FromComponents<f32> for Vector {
 
 /// A value representing a rotation between no rotation and a full rotation.
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct Rotation {
     radians: f32,
 }
@@ -173,6 +179,7 @@ impl Neg for Rotation {
 
 /// A representation of a bone structure inside of a [`Skeleton`].
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub enum BoneKind {
     /// A single bone of a fixed length.
     Rigid {
@@ -194,6 +201,31 @@ pub enum BoneKind {
     },
 }
 
+impl BoneKind {
+    /// Attaches a label to this bone when pushed into a skeleton.
+    #[must_use]
+    pub fn with_label(self, label: impl Into<String>) -> LabeledBoneKind {
+        LabeledBoneKind {
+            kind: self,
+            label: label.into(),
+        }
+    }
+}
+
+/// A [`BoneKind`] with an associated label.
+pub struct LabeledBoneKind {
+    /// The bone to create.
+    pub kind: BoneKind,
+    /// The label of the bone.
+    pub label: String,
+}
+
+impl From<BoneKind> for LabeledBoneKind {
+    fn from(kind: BoneKind) -> Self {
+        kind.with_label(String::new())
+    }
+}
+
 /// A collection of [`Bone`]s. connected by [`Joint`]s.
 #[derive(Default, Debug)]
 pub struct Skeleton {
@@ -202,6 +234,8 @@ pub struct Skeleton {
     joints: Vec<Joint>,
     connections: HashMap<BoneAxis, Vec<JointId>>,
     generation: usize,
+    bones_by_label: HashMap<Arc<String>, BoneId>,
+    joints_by_label: HashMap<Arc<String>, JointId>,
 }
 
 impl Skeleton {
@@ -211,17 +245,25 @@ impl Skeleton {
     /// The first bone pushed is considered the root of the skeleton. All other
     /// bones must be connected to the root directly or indirectly through
     /// [`Joint`]s.
-    pub fn push_bone(&mut self, bone: BoneKind, label: &'static str) -> BoneId {
+    pub fn push_bone(&mut self, bone: impl Into<LabeledBoneKind>) -> BoneId {
+        let bone = bone.into();
         let id = BoneId(u8::try_from(self.bones.len()).expect("too many bones"));
         if id == BoneId(0) {
-            let joint = self.push_joint(Rotation::default(), id.axis_a(), id.axis_a());
+            let joint = self.push_joint(Joint::new(Rotation::default(), id.axis_a(), id.axis_a()));
             self.initial_joint = Some(joint);
             self.connections.insert(id.axis_a(), vec![joint]);
         }
+        let label = if bone.label.is_empty() {
+            None
+        } else {
+            let label = Arc::new(bone.label);
+            self.bones_by_label.insert(label.clone(), id);
+            Some(label)
+        };
         self.bones.push(Bone {
             generation: self.generation,
             label,
-            kind: bone,
+            kind: bone.kind,
             start: Vector::default(),
             joint_pos: None,
             end: Vector::default(),
@@ -232,14 +274,14 @@ impl Skeleton {
 
     /// Creates a new [`Joint`] in the skeleton, connecting two bones together
     /// by their [axis](BoneAxis). Returns the unique id of the created joint.
-    pub fn push_joint(&mut self, angle: Rotation, bone_a: BoneAxis, bone_b: BoneAxis) -> JointId {
+    pub fn push_joint(&mut self, joint: Joint) -> JointId {
         let id = JointId(u8::try_from(self.joints.len()).expect("too many joints"));
-        self.joints.push(Joint {
-            bone_a,
-            bone_b,
-            angle,
-            calculated_position: Vector::default(),
-        });
+        let bone_a = joint.bone_a;
+        let bone_b = joint.bone_b;
+        if let Some(label) = joint.label.clone() {
+            self.joints_by_label.insert(label, id);
+        }
+        self.joints.push(joint);
         self.connections.entry(bone_a).or_default().push(id);
         if bone_a != bone_b {
             self.connections.entry(bone_b).or_default().push(id);
@@ -296,7 +338,7 @@ impl Skeleton {
 
             println!(
                 "Solving {}:{:?} at {current_position:?} - {current_rotation} - {inverse_root}",
-                self.bones[usize::from(axis.bone.0)].label,
+                self.bones[usize::from(axis.bone.0)].label(),
                 axis.end
             );
 
@@ -313,7 +355,9 @@ impl Skeleton {
                 bone.generation = self.generation;
                 println!(
                     "  -> {joint_id:?} -> {}:{:?} ({})",
-                    bone.label, other_axis.end, joint.angle
+                    bone.label(),
+                    other_axis.end,
+                    joint.angle
                 );
                 joint.calculated_position = if let Some(current_position) = current_position {
                     bone.start = current_position;
@@ -478,6 +522,7 @@ impl IndexMut<JointId> for Skeleton {
 
 /// A specific end of a specific bone.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct BoneAxis {
     /// The unique id of the bone of this axis.
     pub bone: BoneId,
@@ -500,7 +545,7 @@ impl BoneAxis {
 #[derive(Debug)]
 pub struct Bone {
     generation: usize,
-    label: &'static str,
+    label: Option<Arc<String>>,
     kind: BoneKind,
     start: Vector,
     joint_pos: Option<Vector>,
@@ -547,13 +592,14 @@ impl Bone {
     /// Returns the label this bone was created with.
     #[must_use]
     pub fn label(&self) -> &str {
-        self.label
+        self.label.as_ref().map_or("", |s| s)
     }
 }
 
 /// A connection between two bones.
 #[derive(Debug)]
 pub struct Joint {
+    label: Option<Arc<String>>,
     bone_a: BoneAxis,
     bone_b: BoneAxis,
     calculated_position: Vector,
@@ -561,6 +607,34 @@ pub struct Joint {
 }
 
 impl Joint {
+    /// Returns a new joint formed by joining `bone_a` and `bone_b` at `angle`.
+    #[must_use]
+    pub const fn new(angle: Rotation, bone_a: BoneAxis, bone_b: BoneAxis) -> Self {
+        Self {
+            label: None,
+            bone_a,
+            bone_b,
+            calculated_position: Vector::new(0., 0.),
+            angle,
+        }
+    }
+
+    /// Labels this joint and returns self.
+    #[must_use]
+    pub fn with_label(mut self, label: impl Into<String>) -> Self {
+        let label = label.into();
+        if !label.is_empty() {
+            self.label = Some(Arc::new(label));
+        }
+        self
+    }
+
+    /// Returns the label of this joint.
+    #[must_use]
+    pub fn label(&self) -> &str {
+        self.label.as_ref().map_or("", |s| s)
+    }
+
     /// Given `axis` is one of the two connections in this joint, return the
     /// other axis.
     ///
@@ -595,6 +669,7 @@ impl Joint {
 
 /// The unique ID of a [`Bone`] in a [`Skeleton`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct BoneId(u8);
 
 impl BoneId {
@@ -619,10 +694,12 @@ impl BoneId {
 
 /// The unique ID of a [`Joint`] in a [`Skeleton`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct JointId(u8);
 
 /// A specific end of a [`Bone`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub enum BoneEnd {
     /// The first end of a bone.
     A,
