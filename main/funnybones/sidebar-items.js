@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["BoneEnd","BoneKind"],"struct":["Bone","BoneAxis","BoneId","Joint","JointId","Rotation","Skeleton","Vector"]};
+window.SIDEBAR_ITEMS = {"enum":["BoneEnd","BoneKind"],"struct":["Bone","BoneAxis","BoneId","Joint","JointId","LabeledBoneKind","Rotation","Skeleton","Vector"]};

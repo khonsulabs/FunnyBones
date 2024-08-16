@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b25d77b18a16a9a4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="funnybones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (13a52890d 2024-08-14)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-cb0df477c2d67d00.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b25d77b18a16a9a4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="funnybones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (2c93fabd9 2024-08-15)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-cb0df477c2d67d00.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -659,6 +659,83 @@
 <a href="#659" id="659">659</a>
 <a href="#660" id="660">660</a>
 <a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
 </pre></div><pre class="rust"><code><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">".crate-docs.md"</span>)]
 
 </span><span class="kw">use </span>std::{
@@ -666,10 +743,15 @@
     f32::consts::PI,
     fmt::{Debug, Display},
     ops::{Add, Index, IndexMut, Neg, Sub},
+    sync::Arc,
 };
+
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
+</span><span class="kw">mod </span>serde;
 
 <span class="doccomment">/// A two dimensionsional offset/measurement.
 </span><span class="attr">#[derive(Default, Clone, Copy, PartialEq, Debug)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub struct </span>Vector {
     <span class="doccomment">/// The x-axis component of this vector.
     </span><span class="kw">pub </span>x: f32,
@@ -727,6 +809,7 @@
 
 <span class="doccomment">/// A value representing a rotation between no rotation and a full rotation.
 </span><span class="attr">#[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub struct </span>Rotation {
     radians: f32,
 }
@@ -834,6 +917,7 @@
 
 <span class="doccomment">/// A representation of a bone structure inside of a [`Skeleton`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub enum </span>BoneKind {
     <span class="doccomment">/// A single bone of a fixed length.
     </span>Rigid {
@@ -855,6 +939,31 @@
     },
 }
 
+<span class="kw">impl </span>BoneKind {
+    <span class="doccomment">/// Attaches a label to this bone when pushed into a skeleton.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>with_label(<span class="self">self</span>, label: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; LabeledBoneKind {
+        LabeledBoneKind {
+            kind: <span class="self">self</span>,
+            label: label.into(),
+        }
+    }
+}
+
+<span class="doccomment">/// A [`BoneKind`] with an associated label.
+</span><span class="kw">pub struct </span>LabeledBoneKind {
+    <span class="doccomment">/// The bone to create.
+    </span><span class="kw">pub </span>kind: BoneKind,
+    <span class="doccomment">/// The label of the bone.
+    </span><span class="kw">pub </span>label: String,
+}
+
+<span class="kw">impl </span>From&lt;BoneKind&gt; <span class="kw">for </span>LabeledBoneKind {
+    <span class="kw">fn </span>from(kind: BoneKind) -&gt; <span class="self">Self </span>{
+        kind.with_label(String::new())
+    }
+}
+
 <span class="doccomment">/// A collection of [`Bone`]s. connected by [`Joint`]s.
 </span><span class="attr">#[derive(Default, Debug)]
 </span><span class="kw">pub struct </span>Skeleton {
@@ -863,6 +972,8 @@
     joints: Vec&lt;Joint&gt;,
     connections: HashMap&lt;BoneAxis, Vec&lt;JointId&gt;&gt;,
     generation: usize,
+    bones_by_label: HashMap&lt;Arc&lt;String&gt;, BoneId&gt;,
+    joints_by_label: HashMap&lt;Arc&lt;String&gt;, JointId&gt;,
 }
 
 <span class="kw">impl </span>Skeleton {
@@ -872,17 +983,25 @@
     /// The first bone pushed is considered the root of the skeleton. All other
     /// bones must be connected to the root directly or indirectly through
     /// [`Joint`]s.
-    </span><span class="kw">pub fn </span>push_bone(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bone: BoneKind, label: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; BoneId {
+    </span><span class="kw">pub fn </span>push_bone(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bone: <span class="kw">impl </span>Into&lt;LabeledBoneKind&gt;) -&gt; BoneId {
+        <span class="kw">let </span>bone = bone.into();
         <span class="kw">let </span>id = BoneId(u8::try_from(<span class="self">self</span>.bones.len()).expect(<span class="string">"too many bones"</span>));
         <span class="kw">if </span>id == BoneId(<span class="number">0</span>) {
-            <span class="kw">let </span>joint = <span class="self">self</span>.push_joint(Rotation::default(), id.axis_a(), id.axis_a());
+            <span class="kw">let </span>joint = <span class="self">self</span>.push_joint(Joint::new(Rotation::default(), id.axis_a(), id.axis_a()));
             <span class="self">self</span>.initial_joint = <span class="prelude-val">Some</span>(joint);
             <span class="self">self</span>.connections.insert(id.axis_a(), <span class="macro">vec!</span>[joint]);
         }
+        <span class="kw">let </span>label = <span class="kw">if </span>bone.label.is_empty() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="kw">let </span>label = Arc::new(bone.label);
+            <span class="self">self</span>.bones_by_label.insert(label.clone(), id);
+            <span class="prelude-val">Some</span>(label)
+        };
         <span class="self">self</span>.bones.push(Bone {
             generation: <span class="self">self</span>.generation,
             label,
-            kind: bone,
+            kind: bone.kind,
             start: Vector::default(),
             joint_pos: <span class="prelude-val">None</span>,
             end: Vector::default(),
@@ -893,14 +1012,14 @@
 
     <span class="doccomment">/// Creates a new [`Joint`] in the skeleton, connecting two bones together
     /// by their [axis](BoneAxis). Returns the unique id of the created joint.
-    </span><span class="kw">pub fn </span>push_joint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, angle: Rotation, bone_a: BoneAxis, bone_b: BoneAxis) -&gt; JointId {
+    </span><span class="kw">pub fn </span>push_joint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, joint: Joint) -&gt; JointId {
         <span class="kw">let </span>id = JointId(u8::try_from(<span class="self">self</span>.joints.len()).expect(<span class="string">"too many joints"</span>));
-        <span class="self">self</span>.joints.push(Joint {
-            bone_a,
-            bone_b,
-            angle,
-            calculated_position: Vector::default(),
-        });
+        <span class="kw">let </span>bone_a = joint.bone_a;
+        <span class="kw">let </span>bone_b = joint.bone_b;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = joint.label.clone() {
+            <span class="self">self</span>.joints_by_label.insert(label, id);
+        }
+        <span class="self">self</span>.joints.push(joint);
         <span class="self">self</span>.connections.entry(bone_a).or_default().push(id);
         <span class="kw">if </span>bone_a != bone_b {
             <span class="self">self</span>.connections.entry(bone_b).or_default().push(id);
@@ -957,7 +1076,7 @@
 
             <span class="macro">println!</span>(
                 <span class="string">"Solving {}:{:?} at {current_position:?} - {current_rotation} - {inverse_root}"</span>,
-                <span class="self">self</span>.bones[usize::from(axis.bone.<span class="number">0</span>)].label,
+                <span class="self">self</span>.bones[usize::from(axis.bone.<span class="number">0</span>)].label(),
                 axis.end
             );
 
@@ -974,7 +1093,9 @@
                 bone.generation = <span class="self">self</span>.generation;
                 <span class="macro">println!</span>(
                     <span class="string">"  -&gt; {joint_id:?} -&gt; {}:{:?} ({})"</span>,
-                    bone.label, other_axis.end, joint.angle
+                    bone.label(),
+                    other_axis.end,
+                    joint.angle
                 );
                 joint.calculated_position = <span class="kw">if let </span><span class="prelude-val">Some</span>(current_position) = current_position {
                     bone.start = current_position;
@@ -1139,6 +1260,7 @@
 
 <span class="doccomment">/// A specific end of a specific bone.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub struct </span>BoneAxis {
     <span class="doccomment">/// The unique id of the bone of this axis.
     </span><span class="kw">pub </span>bone: BoneId,
@@ -1161,7 +1283,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Bone {
     generation: usize,
-    label: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    label: <span class="prelude-ty">Option</span>&lt;Arc&lt;String&gt;&gt;,
     kind: BoneKind,
     start: Vector,
     joint_pos: <span class="prelude-ty">Option</span>&lt;Vector&gt;,
@@ -1208,13 +1330,14 @@
     <span class="doccomment">/// Returns the label this bone was created with.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="self">self</span>.label
+        <span class="self">self</span>.label.as_ref().map_or(<span class="string">""</span>, |s| s)
     }
 }
 
 <span class="doccomment">/// A connection between two bones.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Joint {
+    label: <span class="prelude-ty">Option</span>&lt;Arc&lt;String&gt;&gt;,
     bone_a: BoneAxis,
     bone_b: BoneAxis,
     calculated_position: Vector,
@@ -1222,6 +1345,34 @@
 }
 
 <span class="kw">impl </span>Joint {
+    <span class="doccomment">/// Returns a new joint formed by joining `bone_a` and `bone_b` at `angle`.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>new(angle: Rotation, bone_a: BoneAxis, bone_b: BoneAxis) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            label: <span class="prelude-val">None</span>,
+            bone_a,
+            bone_b,
+            calculated_position: Vector::new(<span class="number">0.</span>, <span class="number">0.</span>),
+            angle,
+        }
+    }
+
+    <span class="doccomment">/// Labels this joint and returns self.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>with_label(<span class="kw-2">mut </span><span class="self">self</span>, label: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>label = label.into();
+        <span class="kw">if </span>!label.is_empty() {
+            <span class="self">self</span>.label = <span class="prelude-val">Some</span>(Arc::new(label));
+        }
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Returns the label of this joint.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.label.as_ref().map_or(<span class="string">""</span>, |s| s)
+    }
+
     <span class="doccomment">/// Given `axis` is one of the two connections in this joint, return the
     /// other axis.
     ///
@@ -1256,6 +1407,7 @@
 
 <span class="doccomment">/// The unique ID of a [`Bone`] in a [`Skeleton`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub struct </span>BoneId(u8);
 
 <span class="kw">impl </span>BoneId {
@@ -1280,10 +1432,12 @@
 
 <span class="doccomment">/// The unique ID of a [`Joint`] in a [`Skeleton`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub struct </span>JointId(u8);
 
 <span class="doccomment">/// A specific end of a [`Bone`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
 </span><span class="kw">pub enum </span>BoneEnd {
     <span class="doccomment">/// The first end of a bone.
     </span>A,
