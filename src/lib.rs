@@ -9,6 +9,7 @@ use std::{
     sync::Arc,
 };
 
+pub mod animation;
 #[cfg(feature = "serde")]
 mod serde;
 

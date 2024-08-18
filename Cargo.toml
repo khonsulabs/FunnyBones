@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+serde = ["dep:serde", "easing-function/serde"]
 
 [[example]]
 name = "skeleton"
@@ -12,6 +13,7 @@ required-features = ["cushy"]
 [dependencies]
 cushy = { git = "https://github.com/khonsulabs/cushy", optional = true }
 serde = { version = "1.0.208", optional = true, features = ["derive"] }
+easing-function = "0.1.0"
 
 [dev-dependencies]
 pot = "3.0.0"

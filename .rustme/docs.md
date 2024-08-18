@@ -3,7 +3,7 @@
 
 ![FunnyBones is considered experimental and unsupported](https://img.shields.io/badge/status-experimental-purple)
 [![crate version](https://img.shields.io/crates/v/muse.svg)](https://crates.io/crates/funnybones)
-[![Documentation for `$ref-name$`](https://img.shields.io/badge/docs-main-informational)]($docs$)
+[![Documentation for `$ref-name$`](https://img.shields.io/badge/docs-$ref-name$-informational)]($docs$)
 
 A simple 2D kinematics library for Rust
 
