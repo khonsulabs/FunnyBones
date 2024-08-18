@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ChangeKind"],"struct":["Animation","Change","Frame","RunningAnimation"]};
