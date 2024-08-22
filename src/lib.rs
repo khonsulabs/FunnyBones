@@ -5,11 +5,13 @@ use std::{
     collections::{HashMap, HashSet},
     f32::consts::PI,
     fmt::{Debug, Display},
-    ops::{Add, Deref, Index, IndexMut, Neg, Sub},
+    ops::{Add, Deref, Div, Index, IndexMut, Mul, Neg, Sub},
     sync::Arc,
 };
 
 pub mod animation;
+#[cfg(feature = "cushy")]
+pub mod cushy;
 #[cfg(feature = "serde")]
 mod serde;
 
@@ -46,6 +48,17 @@ impl Vector {
     }
 }
 
+impl Add for Vector {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
 impl Sub for Vector {
     type Output = Self;
 
@@ -57,17 +70,25 @@ impl Sub for Vector {
     }
 }
 
-#[cfg(feature = "cushy")]
-impl cushy::figures::IntoComponents<f32> for Vector {
-    fn into_components(self) -> (f32, f32) {
-        (self.x, self.y)
+impl Mul<f32> for Vector {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
     }
 }
 
-#[cfg(feature = "cushy")]
-impl cushy::figures::FromComponents<f32> for Vector {
-    fn from_components(components: (f32, f32)) -> Self {
-        Self::new(components.0, components.1)
+impl Div<f32> for Vector {
+    type Output = Self;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Self {
+            x: self.x / rhs,
+            y: self.y / rhs,
+        }
     }
 }
 
@@ -79,6 +100,12 @@ pub struct Rotation {
 }
 
 impl Rotation {
+    /// The minimum rotation represented by this type.
+    pub const MIN: Self = Self { radians: 0. };
+    /// The maximum rotation represented by this type.
+    pub const MAX: Self = Self {
+        radians: PI * 2. - f32::EPSILON,
+    };
     /// Returns a rotation representing the given radians.
     #[must_use]
     pub fn radians(radians: f32) -> Self {
@@ -118,22 +145,6 @@ impl Rotation {
             self.radians += TWO_PI;
         }
         self
-    }
-}
-
-#[cfg(feature = "cushy")]
-impl cushy::animation::PercentBetween for Rotation {
-    fn percent_between(&self, min: &Self, max: &Self) -> cushy::animation::ZeroToOne {
-        self.radians.percent_between(&min.radians, &max.radians)
-    }
-}
-
-#[cfg(feature = "cushy")]
-impl cushy::animation::LinearInterpolate for Rotation {
-    fn lerp(&self, target: &Self, percent: f32) -> Self {
-        Self {
-            radians: self.radians.lerp(&target.radians, percent),
-        }
     }
 }
 
@@ -252,7 +263,7 @@ impl Borrow<str> for ArcString {
 }
 
 /// A collection of [`Bone`]s. connected by [`Joint`]s.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct Skeleton {
     initial_joint: Option<JointId>,
     bones: Vec<Bone>,
@@ -295,6 +306,18 @@ impl Skeleton {
             desired_end: None,
         });
         id
+    }
+
+    /// Returns the list of bones in this skeleton.
+    #[must_use]
+    pub fn bones(&self) -> &[Bone] {
+        &self.bones
+    }
+
+    /// Returns the list of joints in this skeleton.
+    #[must_use]
+    pub fn joints(&self) -> &[Joint] {
+        &self.joints
     }
 
     /// Creates a new [`Joint`] in the skeleton, connecting two bones together
@@ -373,12 +396,6 @@ impl Skeleton {
                 continue;
             };
 
-            println!(
-                "Solving {}:{:?} at {current_position:?} - {current_rotation} - {inverse_root}",
-                self.bones[usize::from(axis.bone.0)].label(),
-                axis.end
-            );
-
             for joint_id in connections {
                 let joint = &mut self.joints[usize::from(joint_id.0)];
                 let other_axis = joint.other_axis(axis);
@@ -390,12 +407,6 @@ impl Skeleton {
                     continue;
                 }
                 bone.generation = self.generation;
-                println!(
-                    "  -> {joint_id:?} -> {}:{:?} ({})",
-                    bone.label(),
-                    other_axis.end,
-                    joint.angle
-                );
                 joint.calculated_position = if let Some(current_position) = current_position {
                     bone.start = current_position;
                     current_position
@@ -579,7 +590,7 @@ impl BoneAxis {
 }
 
 /// A bone in a [`Skeleton`].
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Bone {
     generation: usize,
     label: Option<ArcString>,
@@ -634,7 +645,7 @@ impl Bone {
 }
 
 /// A connection between two bones.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Joint {
     label: Option<ArcString>,
     bone_a: BoneAxis,
