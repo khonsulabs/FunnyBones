@@ -1,5 +1,7 @@
 //! Widgets for editing and rendering skeletons.
 
+use cushy::figures::Ranged;
+
 use crate::{Rotation, Vector};
 
 pub mod skeleton_canvas;
@@ -28,4 +30,9 @@ impl cushy::figures::FromComponents<f32> for Vector {
     fn from_components(components: (f32, f32)) -> Self {
         Self::new(components.0, components.1)
     }
+}
+
+impl Ranged for Rotation {
+    const MIN: Self = Self::MIN;
+    const MAX: Self = Self::MAX;
 }

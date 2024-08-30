@@ -7,6 +7,7 @@ use std::{
     fmt::{Debug, Display},
     ops::{Add, Deref, Div, Index, IndexMut, Mul, Neg, Sub},
     sync::Arc,
+    vec::Vec,
 };
 
 pub mod animation;
@@ -45,6 +46,12 @@ impl Vector {
             x: f(self.x),
             y: f(self.y),
         }
+    }
+
+    /// Returns the angle formed a line passing through 0,0 towards this vector.
+    #[must_use]
+    pub fn as_rotation(self) -> Rotation {
+        Rotation::radians(self.y.atan2(self.x))
     }
 }
 
@@ -283,7 +290,7 @@ impl Skeleton {
     /// [`Joint`]s.
     pub fn push_bone(&mut self, bone: impl Into<LabeledBoneKind>) -> BoneId {
         let bone = bone.into();
-        let id = BoneId(u8::try_from(self.bones.len()).expect("too many bones"));
+        let id = BoneId(u16::try_from(self.bones.len()).expect("too many bones"));
         if id == BoneId(0) {
             let joint = self.push_joint(Joint::new(Rotation::default(), id.axis_a(), id.axis_a()));
             self.initial_joint = Some(joint);
@@ -297,6 +304,7 @@ impl Skeleton {
             Some(label)
         };
         self.bones.push(Bone {
+            id,
             generation: self.generation,
             label,
             kind: bone.kind,
@@ -320,10 +328,17 @@ impl Skeleton {
         &self.joints
     }
 
+    /// Returns a list of joints connected to a specific bone axis.
+    #[must_use]
+    pub fn connections_to(&self, axis: BoneAxis) -> Option<&[JointId]> {
+        self.connections.get(&axis).map(Vec::as_slice)
+    }
+
     /// Creates a new [`Joint`] in the skeleton, connecting two bones together
     /// by their [axis](BoneAxis). Returns the unique id of the created joint.
-    pub fn push_joint(&mut self, joint: Joint) -> JointId {
-        let id = JointId(u8::try_from(self.joints.len()).expect("too many joints"));
+    pub fn push_joint(&mut self, mut joint: Joint) -> JointId {
+        let id = JointId(u16::try_from(self.joints.len()).expect("too many joints"));
+        joint.id = id;
         let bone_a = joint.bone_a;
         let bone_b = joint.bone_b;
         if let Some(label) = joint.label.clone() {
@@ -399,7 +414,7 @@ impl Skeleton {
             for joint_id in connections {
                 let joint = &mut self.joints[usize::from(joint_id.0)];
                 let other_axis = joint.other_axis(axis);
-                let bone = &mut self.bones[usize::from(other_axis.bone.0)];
+                let bone = &mut self.bones[other_axis.bone.index()];
                 if bone.generation == self.generation {
                     // We store connections in both directions, which means we
                     // can visit bones twice. We want to ensure we only follow
@@ -432,7 +447,7 @@ impl Skeleton {
                 bone.joint_pos = mid;
                 if let Some(mid) = mid {
                     let final_delta = end - mid;
-                    let rotation = Rotation::radians(final_delta.y.atan2(final_delta.x));
+                    let rotation = final_delta.as_rotation();
                     // TODO I don't know why rotating by 90 degrees fixes
                     // everything here. It feels like atan2 should be giving us
                     // the correct rotation, or the correction amount should be
@@ -480,7 +495,7 @@ fn determine_end_position(
         } => {
             if let Some(desired_end) = desired_end {
                 let delta = desired_end - start;
-                let desired_angle = Rotation::radians(delta.y.atan2(delta.x) + PI / 2.);
+                let desired_angle = delta.as_rotation() + Rotation::radians(PI / 2.);
                 let distance = delta.magnitude();
                 let full_length = start_length + end_length;
                 let minimum_size = (start_length - end_length).abs();
@@ -544,13 +559,13 @@ impl Index<BoneId> for Skeleton {
     type Output = Bone;
 
     fn index(&self, index: BoneId) -> &Self::Output {
-        &self.bones[usize::from(index.0)]
+        &self.bones[index.index()]
     }
 }
 
 impl IndexMut<BoneId> for Skeleton {
     fn index_mut(&mut self, index: BoneId) -> &mut Self::Output {
-        &mut self.bones[usize::from(index.0)]
+        &mut self.bones[index.index()]
     }
 }
 
@@ -558,13 +573,13 @@ impl Index<JointId> for Skeleton {
     type Output = Joint;
 
     fn index(&self, index: JointId) -> &Self::Output {
-        &self.joints[usize::from(index.0)]
+        &self.joints[index.index()]
     }
 }
 
 impl IndexMut<JointId> for Skeleton {
     fn index_mut(&mut self, index: JointId) -> &mut Self::Output {
-        &mut self.joints[usize::from(index.0)]
+        &mut self.joints[index.index()]
     }
 }
 
@@ -592,6 +607,7 @@ impl BoneAxis {
 /// A bone in a [`Skeleton`].
 #[derive(Debug, PartialEq)]
 pub struct Bone {
+    id: BoneId,
     generation: usize,
     label: Option<ArcString>,
     kind: BoneKind,
@@ -602,6 +618,18 @@ pub struct Bone {
 }
 
 impl Bone {
+    /// Returns the unique id of this bone.
+    #[must_use]
+    pub const fn id(&self) -> BoneId {
+        self.id
+    }
+
+    /// Returns true if this bone is the root of the skeleton.
+    #[must_use]
+    pub const fn is_root(&self) -> bool {
+        self.id.0 == 0
+    }
+
     /// Sets the location to aim the end of this bone towards.
     ///
     /// The end of the bone that is aimed is the end that is furthest from the
@@ -647,6 +675,7 @@ impl Bone {
 /// A connection between two bones.
 #[derive(Debug, PartialEq)]
 pub struct Joint {
+    id: JointId,
     label: Option<ArcString>,
     bone_a: BoneAxis,
     bone_b: BoneAxis,
@@ -655,10 +684,17 @@ pub struct Joint {
 }
 
 impl Joint {
+    /// Returns the unique id of this joint.
+    #[must_use]
+    pub const fn id(&self) -> JointId {
+        self.id
+    }
+
     /// Returns a new joint formed by joining `bone_a` and `bone_b` at `angle`.
     #[must_use]
     pub const fn new(angle: Rotation, bone_a: BoneAxis, bone_b: BoneAxis) -> Self {
         Self {
+            id: JointId(0),
             label: None,
             bone_a,
             bone_b,
@@ -718,7 +754,7 @@ impl Joint {
 /// The unique ID of a [`Bone`] in a [`Skeleton`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
-pub struct BoneId(u8);
+pub struct BoneId(u16);
 
 impl BoneId {
     /// Returns the first axis of this bone.
@@ -738,12 +774,26 @@ impl BoneId {
             end: BoneEnd::B,
         }
     }
+
+    /// Returns the index of this bone within the skeleton.
+    #[must_use]
+    pub fn index(self) -> usize {
+        usize::from(self.0)
+    }
 }
 
 /// The unique ID of a [`Joint`] in a [`Skeleton`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
-pub struct JointId(u8);
+pub struct JointId(u16);
+
+impl JointId {
+    /// Returns the index of this joint within the skeleton.
+    #[must_use]
+    pub fn index(self) -> usize {
+        usize::from(self.0)
+    }
+}
 
 /// A specific end of a [`Bone`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
