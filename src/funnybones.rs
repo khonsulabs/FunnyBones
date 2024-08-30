@@ -10,7 +10,7 @@ use cushy::{
 };
 use funnybones::{
     cushy::skeleton_canvas::{SkeletonCanvas, SkeletonMutation},
-    BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Rotation, Skeleton, Vector,
+    BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Angle, Skeleton, Coordinate,
 };
 
 #[derive(Default, Eq, PartialEq, Debug, Clone, Copy)]
@@ -200,11 +200,11 @@ impl EditingSkeleton {
 struct SkeletalBone {
     label: Dynamic<String>,
     joint_label: Dynamic<String>,
-    joint_angle: Dynamic<Rotation>,
+    joint_angle: Dynamic<Angle>,
     length: Dynamic<f32>,
     jointed: Dynamic<Option<f32>>,
     inverse: Dynamic<bool>,
-    desired_end: Dynamic<Option<Vector>>,
+    desired_end: Dynamic<Option<Coordinate>>,
     connected_bones: Dynamic<Vec<SkeletalBone>>,
 }
 
@@ -228,7 +228,7 @@ impl Default for SkeletalBone {
     fn default() -> Self {
         Self {
             joint_label: Dynamic::default(),
-            joint_angle: Dynamic::new(Rotation::degrees(90.)),
+            joint_angle: Dynamic::new(Angle::degrees(90.)),
             label: Dynamic::default(),
             length: Dynamic::new(1.),
             jointed: Dynamic::default(),

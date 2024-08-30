@@ -9,7 +9,7 @@ use std::{
 
 use easing_function::{easings::StandardEasing, Easing};
 
-use crate::{BoneId, JointId, Rotation, Skeleton, Vector};
+use crate::{BoneId, JointId, Angle, Skeleton, Coordinate};
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Animation(Arc<AnimationData>);
@@ -166,8 +166,8 @@ impl From<ChangeKind> for Change {
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ChangeKind {
-    Bone { bone: BoneId, position: Vector },
-    Joint { joint: JointId, rotation: Rotation },
+    Bone { bone: BoneId, position: Coordinate },
+    Joint { joint: JointId, rotation: Angle },
 }
 
 impl ChangeKind {
@@ -178,8 +178,8 @@ impl ChangeKind {
 }
 
 enum OriginalProperty {
-    Rotation(Rotation),
-    Vector(Vector),
+    Rotation(Angle),
+    Vector(Coordinate),
 }
 
 pub struct RunningAnimation {
@@ -290,16 +290,16 @@ impl Lerp for f32 {
     }
 }
 
-impl Lerp for Vector {
+impl Lerp for Coordinate {
     fn lerp(self, target: Self, percent: f32) -> Self {
-        Vector::new(
+        Coordinate::new(
             self.x.lerp(target.x, percent),
             self.y.lerp(target.y, percent),
         )
     }
 }
 
-impl Lerp for Rotation {
+impl Lerp for Angle {
     fn lerp(self, target: Self, percent: f32) -> Self {
         let delta_neg = self.radians - target.radians;
         let delta_pos = target.radians - self.radians;

@@ -6,7 +6,7 @@ use serde::{
     Deserialize, Serialize,
 };
 
-use crate::{Bone, BoneAxis, BoneKind, Joint, Rotation, Skeleton, Vector};
+use crate::{Bone, BoneAxis, BoneKind, Joint, Angle, Skeleton, Coordinate};
 
 impl Serialize for Skeleton {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -106,7 +106,7 @@ struct DeserializedBone {
     label: String,
     kind: BoneKind,
     #[serde(default)]
-    target: Option<Vector>,
+    target: Option<Coordinate>,
 }
 
 impl Serialize for Joint {
@@ -130,7 +130,7 @@ impl Serialize for Joint {
 struct DeserializedJoint {
     from: BoneAxis,
     to: BoneAxis,
-    angle: Rotation,
+    angle: Angle,
     #[serde(default)]
     label: String,
 }
@@ -145,7 +145,7 @@ fn roundtrip() {
         inverse: true,
     });
     let joint = s.push_joint(Joint::new(
-        Rotation::radians(0.),
+        Angle::radians(0.),
         spine.axis_a(),
         other.axis_b(),
     ));
@@ -153,5 +153,5 @@ fn roundtrip() {
     let deserialized: Skeleton = dbg!(pot::from_slice(&serialized).unwrap());
     assert_eq!(deserialized[spine].label(), "spine");
     assert_eq!(deserialized[other].label(), "");
-    assert_eq!(deserialized[joint].angle(), Rotation::radians(0.));
+    assert_eq!(deserialized[joint].angle(), Angle::radians(0.));
 }

@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 use core::f32;
 
-use crate::{BoneEnd, BoneId, JointId, Rotation, Skeleton, Vector};
+use crate::{BoneEnd, BoneId, JointId, Angle, Skeleton, Coordinate};
 use cushy::{
     context::{EventContext, GraphicsContext, LayoutContext},
     figures::{
@@ -54,14 +54,14 @@ impl SkeletonCanvas {
         self
     }
 
-    fn vector_position(&self, vector: Vector) -> Point<Px> {
+    fn vector_position(&self, vector: Coordinate) -> Point<Px> {
         (vector * self.scale).to_vec::<Point<f32>>().map(Px::from) + self.offset
     }
 
-    fn position_to_vector(&self, position: Point<Px>) -> Vector {
+    fn position_to_vector(&self, position: Point<Px>) -> Coordinate {
         (position - self.offset)
             .map(FloatConversion::into_float)
-            .to_vec::<Vector>()
+            .to_vec::<Coordinate>()
             / self.scale
     }
 }
@@ -77,21 +77,21 @@ impl Widget for SkeletonCanvas {
         skeleton.solve();
         let root_start = skeleton.bones()[0].start();
         let (min, max) = skeleton.bones().iter().fold(
-            (Vector::new(f32::MAX, f32::MAX), Vector::default()),
+            (Coordinate::new(f32::MAX, f32::MAX), Coordinate::default()),
             |(min, max), bone| {
                 let start = bone.start() - root_start;
                 let end = bone.end() - root_start;
                 (
-                    Vector::new(min.x.min(start.x).min(end.x), min.y.min(start.y).min(end.y)),
-                    Vector::new(max.x.max(start.x).max(end.x), max.y.max(start.y).max(end.y)),
+                    Coordinate::new(min.x.min(start.x).min(end.x), min.y.min(start.y).min(end.y)),
+                    Coordinate::new(max.x.max(start.x).max(end.x), max.y.max(start.y).max(end.y)),
                 )
             },
         );
 
         let skeleton_extent =
-            Vector::new(min.x.abs().max(max.x.abs()), min.y.abs().max(max.y.abs()));
+            Coordinate::new(min.x.abs().max(max.x.abs()), min.y.abs().max(max.y.abs()));
 
-        let middle = context.gfx.size().into_float().to_vec::<Vector>() / 2.;
+        let middle = context.gfx.size().into_float().to_vec::<Coordinate>() / 2.;
         let height_ratio = middle.y / skeleton_extent.y;
         let width_ratio = middle.x / skeleton_extent.x;
         let zero_width = width_ratio.is_nan();
@@ -300,7 +300,7 @@ impl Widget for SkeletonCanvas {
     }
 }
 
-fn distance_to_line(test: Vector, p1: Vector, p2: Vector) -> f32 {
+fn distance_to_line(test: Coordinate, p1: Coordinate, p2: Coordinate) -> f32 {
     let delta = p2 - p1;
     let segment_length = delta.magnitude();
 
@@ -328,11 +328,11 @@ pub enum Target {
 #[derive(Debug)]
 struct DragInfo {
     target: Target,
-    last: Vector,
+    last: Coordinate,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SkeletonMutation {
-    SetDesiredEnd { bone: BoneId, end: Vector },
-    SetJointRotation { joint: JointId, rotation: Rotation },
+    SetDesiredEnd { bone: BoneId, end: Coordinate },
+    SetJointRotation { joint: JointId, rotation: Angle },
 }
