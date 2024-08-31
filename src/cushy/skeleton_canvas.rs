@@ -6,7 +6,7 @@ use cushy::{
     context::{EventContext, GraphicsContext, LayoutContext},
     figures::{
         units::{Lp, Px, UPx},
-        FloatConversion, IntoComponents, Point, Round, ScreenScale, Size,
+        FloatConversion, IntoComponents, Point, Rect, Round, ScreenScale, Size,
     },
     kludgine::{
         app::winit::{event::MouseButton, window::CursorIcon},
@@ -56,11 +56,11 @@ impl SkeletonCanvas {
         self
     }
 
-    fn vector_position(&self, vector: Coordinate) -> Point<Px> {
+    fn coordinate_to_point(&self, vector: Coordinate) -> Point<Px> {
         (vector * self.scale).to_vec::<Point<f32>>().map(Px::from) + self.offset
     }
 
-    fn position_to_vector(&self, position: Point<Px>) -> Coordinate {
+    fn point_to_coordinate(&self, position: Point<Px>) -> Coordinate {
         (position - self.offset)
             .map(FloatConversion::into_float)
             .to_vec::<Coordinate>()
@@ -69,6 +69,7 @@ impl SkeletonCanvas {
 }
 
 impl Widget for SkeletonCanvas {
+    #[allow(clippy::too_many_lines)]
     fn redraw(&mut self, context: &mut GraphicsContext<'_, '_, '_, '_>) {
         context.redraw_when_changed(&self.skeleton);
         let mut skeleton = self.skeleton.lock();
@@ -120,36 +121,42 @@ impl Widget for SkeletonCanvas {
         let selected = self.drag.as_ref().map_or(self.hovering, |d| Some(d.target));
 
         for bone in skeleton.bones() {
+            let (selected, color) = match selected {
+                Some(Target::DesiredEnd(id)) if id == bone.id() => (true, Color::RED),
+                Some(Target::Joint(joint)) if skeleton[joint].bone_b == bone.id().axis_a() => {
+                    (true, Color::RED)
+                }
+                Some(Target::Joint(joint)) if skeleton[joint].bone_a.bone == bone.id() => {
+                    (false, Color::BLUE)
+                }
+                _ => (false, (Color::WHITE)),
+            };
             let path = if let Some(joint) = bone.solved_joint() {
-                let joint = self.vector_position(joint);
-                context.gfx.draw_shape(
-                    Shape::filled_circle(handle_size / 2, Color::WHITE, Origin::Center)
-                        .translate_by(joint),
-                );
-                PathBuilder::new(self.vector_position(bone.start()))
+                let joint = self.coordinate_to_point(joint);
+                context
+                    .gfx
+                    .draw_shape(centered_square(handle_size / 2, color).translate_by(joint));
+                PathBuilder::new(self.coordinate_to_point(bone.start()))
                     .line_to(joint)
-                    .line_to(self.vector_position(bone.end()))
+                    .line_to(self.coordinate_to_point(bone.end()))
                     .build()
             } else {
-                PathBuilder::new(self.vector_position(bone.start()))
-                    .line_to(self.vector_position(bone.end()))
+                PathBuilder::new(self.coordinate_to_point(bone.start()))
+                    .line_to(self.coordinate_to_point(bone.end()))
                     .build()
             };
-            let (selected, stroke) = match selected {
-                Some(Target::DesiredEnd(id)) if id == bone.id() => (
-                    true,
-                    StrokeOptions::px_wide(handle_size / 2).colored(Color::RED),
-                ),
-                Some(Target::Joint(joint)) if skeleton[joint].bone_b == bone.id().axis_a() => (
-                    true,
-                    StrokeOptions::px_wide(handle_size / 2).colored(Color::RED),
-                ),
-                Some(Target::Joint(joint)) if skeleton[joint].bone_a.bone == bone.id() => (
-                    false,
-                    StrokeOptions::px_wide(handle_size / 2).colored(Color::BLUE),
-                ),
-                _ => (false, StrokeOptions::px_wide(1).colored(Color::WHITE)),
-            };
+            if bone.is_root() {
+                context.gfx.draw_shape(
+                    centered_square(handle_size / 2, color)
+                        .translate_by(self.coordinate_to_point(bone.start())),
+                );
+            }
+            context.gfx.draw_shape(
+                centered_square(handle_size / 2, color)
+                    .translate_by(self.coordinate_to_point(bone.end())),
+            );
+            let width = 1 + i32::from(selected);
+            let stroke = StrokeOptions::px_wide(width).colored(color);
             context.gfx.draw_shape(&path.stroke(stroke));
 
             if selected {
@@ -160,7 +167,7 @@ impl Widget for SkeletonCanvas {
                 } else {
                     bone.end()
                 };
-                let end = self.vector_position(end);
+                let end = self.coordinate_to_point(end);
 
                 context.gfx.draw_shape(
                     Shape::filled_circle(handle_size, stroke.color, Origin::Center)
@@ -179,7 +186,7 @@ impl Widget for SkeletonCanvas {
     }
 
     fn hover(&mut self, location: Point<Px>, context: &mut EventContext<'_>) -> Option<CursorIcon> {
-        let location = self.position_to_vector(location);
+        let location = self.point_to_coordinate(location);
         let skeleton = self.skeleton.read();
         let mut closest_match = self.handle_size;
         let current_hover = self.hovering.take();
@@ -247,7 +254,7 @@ impl Widget for SkeletonCanvas {
         if let Some(target) = self.hovering {
             self.drag = Some(DragInfo {
                 target,
-                last: self.position_to_vector(location),
+                last: self.point_to_coordinate(location),
             });
             HANDLED
         } else {
@@ -262,7 +269,7 @@ impl Widget for SkeletonCanvas {
         _button: MouseButton,
         _context: &mut EventContext<'_>,
     ) {
-        let location = self.position_to_vector(location);
+        let location = self.point_to_coordinate(location);
         if let Some(drag) = &mut self.drag {
             let delta = location - drag.last;
             if delta.magnitude() > f32::EPSILON {
@@ -325,6 +332,13 @@ impl Widget for SkeletonCanvas {
     fn hit_test(&mut self, _location: Point<Px>, _context: &mut EventContext<'_>) -> bool {
         true
     }
+}
+
+fn centered_square(size: Px, color: Color) -> Shape<Px, false> {
+    Shape::filled_rect(
+        Rect::new(Point::squared(-size / 2), Size::squared(size)),
+        color,
+    )
 }
 
 fn distance_to_line(test: Coordinate, p1: Coordinate, p2: Coordinate) -> f32 {
