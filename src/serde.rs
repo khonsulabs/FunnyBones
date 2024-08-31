@@ -150,7 +150,7 @@ fn roundtrip() {
         other.axis_b(),
     ));
     let serialized = pot::to_vec(&s).unwrap();
-    let deserialized: Skeleton = dbg!(pot::from_slice(&serialized).unwrap());
+    let deserialized: Skeleton = pot::from_slice(&serialized).unwrap();
     assert_eq!(deserialized[spine].label(), "spine");
     assert_eq!(deserialized[other].label(), "");
     assert_eq!(deserialized[joint].angle(), Angle::radians(0.));

@@ -542,13 +542,6 @@ impl Skeleton {
                 continue;
             };
 
-            println!(
-                "Solving {axis:?} - {}",
-                self.bones[axis.bone.index()]
-                    .label
-                    .as_ref()
-                    .map_or("", |s| s)
-            );
             for joint_id in connections {
                 let joint = &mut self.joints[joint_id.index()];
                 let other_axis = joint.other_axis(axis);
@@ -559,11 +552,6 @@ impl Skeleton {
                     // each bone a single time.
                     continue;
                 }
-                println!(
-                    "{joint_id:?}{} -> {other_axis:?}{} at {current_rotation}",
-                    joint.label.as_ref().map_or("", |s| s),
-                    bone.label.as_ref().map_or("", |s| s)
-                );
                 bone.generation = self.generation;
                 bone.entry_angle = current_rotation;
                 bone.start = current_position;

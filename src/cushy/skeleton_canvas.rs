@@ -5,8 +5,8 @@ use crate::{Angle, BoneEnd, BoneId, Coordinate, JointId, Skeleton, Vector};
 use cushy::{
     context::{EventContext, GraphicsContext, LayoutContext},
     figures::{
-        units::{Px, UPx},
-        FloatConversion, IntoComponents, Point, Round, Size,
+        units::{Lp, Px, UPx},
+        FloatConversion, IntoComponents, Point, Round, ScreenScale, Size,
     },
     kludgine::{
         app::winit::{event::MouseButton, window::CursorIcon},
@@ -25,6 +25,7 @@ pub struct SkeletonCanvas {
     skeleton: Dynamic<Skeleton>,
     hovering: Option<Target>,
     scale: f32,
+    handle_size: f32,
     maximum_scale: f32,
     offset: Point<Px>,
     drag: Option<DragInfo>,
@@ -37,6 +38,7 @@ impl SkeletonCanvas {
         Self {
             skeleton,
             hovering: None,
+            handle_size: 0.1,
             scale: f32::MAX,
             maximum_scale: 0.,
             offset: Point::default(),
@@ -108,6 +110,9 @@ impl Widget for SkeletonCanvas {
         if self.scale > self.maximum_scale {
             self.scale = self.maximum_scale;
         }
+        let handle_size = Lp::mm(2).into_px(context.gfx.scale()).ceil();
+        self.handle_size = handle_size.into_float() / self.scale;
+
         let root = root_start * self.scale;
 
         self.offset = (middle - root).to_vec::<Point<f32>>().map(Px::from).floor();
@@ -118,7 +123,7 @@ impl Widget for SkeletonCanvas {
             let path = if let Some(joint) = bone.solved_joint() {
                 let joint = self.vector_position(joint);
                 context.gfx.draw_shape(
-                    Shape::filled_circle(Px::new(4), Color::WHITE, Origin::Center)
+                    Shape::filled_circle(handle_size / 2, Color::WHITE, Origin::Center)
                         .translate_by(joint),
                 );
                 PathBuilder::new(self.vector_position(bone.start()))
@@ -131,15 +136,18 @@ impl Widget for SkeletonCanvas {
                     .build()
             };
             let (selected, stroke) = match selected {
-                Some(Target::DesiredEnd(id)) if id == bone.id() => {
-                    (true, StrokeOptions::px_wide(2).colored(Color::RED))
-                }
-                Some(Target::Joint(joint)) if skeleton[joint].bone_b == bone.id().axis_a() => {
-                    (true, StrokeOptions::px_wide(2).colored(Color::RED))
-                }
-                Some(Target::Joint(joint)) if skeleton[joint].bone_a.bone == bone.id() => {
-                    (false, StrokeOptions::px_wide(2).colored(Color::BLUE))
-                }
+                Some(Target::DesiredEnd(id)) if id == bone.id() => (
+                    true,
+                    StrokeOptions::px_wide(handle_size / 2).colored(Color::RED),
+                ),
+                Some(Target::Joint(joint)) if skeleton[joint].bone_b == bone.id().axis_a() => (
+                    true,
+                    StrokeOptions::px_wide(handle_size / 2).colored(Color::RED),
+                ),
+                Some(Target::Joint(joint)) if skeleton[joint].bone_a.bone == bone.id() => (
+                    false,
+                    StrokeOptions::px_wide(handle_size / 2).colored(Color::BLUE),
+                ),
                 _ => (false, StrokeOptions::px_wide(1).colored(Color::WHITE)),
             };
             context.gfx.draw_shape(&path.stroke(stroke));
@@ -155,7 +163,7 @@ impl Widget for SkeletonCanvas {
                 let end = self.vector_position(end);
 
                 context.gfx.draw_shape(
-                    Shape::filled_circle(Px::new(10), stroke.color, Origin::Center)
+                    Shape::filled_circle(handle_size, stroke.color, Origin::Center)
                         .translate_by(end),
                 );
             }
@@ -173,21 +181,22 @@ impl Widget for SkeletonCanvas {
     fn hover(&mut self, location: Point<Px>, context: &mut EventContext<'_>) -> Option<CursorIcon> {
         let location = self.position_to_vector(location);
         let skeleton = self.skeleton.read();
-        let mut closest_match = 0.1;
+        let mut closest_match = self.handle_size;
         let current_hover = self.hovering.take();
         for bone in skeleton.bones() {
-            let mut distance = (location - bone.end()).magnitude() / 10.;
+            let mut distance = (location - bone.end()).magnitude();
             if let Some(mid) = bone.solved_joint() {
                 // This can have its desired_end set
                 distance = distance.min(
-                    distance_to_line(location, bone.start(), mid).min(distance_to_line(
-                        location,
-                        mid,
-                        bone.end(),
-                    )),
+                    distance_to_line(location, bone.start(), mid)
+                        .min(distance_to_line(location, mid, bone.end()))
+                        .max(self.handle_size / 10.)
+                        * 5.0,
                 );
                 if let Some(desired_end) = bone.desired_end() {
-                    distance = distance.min((location - desired_end).magnitude());
+                    distance = distance.min(
+                        (location - bone.start() - (desired_end + bone.entry_angle())).magnitude(),
+                    );
                 }
 
                 if distance < closest_match {
@@ -196,7 +205,11 @@ impl Widget for SkeletonCanvas {
                 }
             } else if !bone.is_root() {
                 // Single line segment
-                let distance = distance_to_line(location, bone.start(), bone.end());
+                distance = distance.min(
+                    distance_to_line(location, bone.start(), bone.end())
+                        .max(self.handle_size / 10.)
+                        * 5.0,
+                );
                 if distance < closest_match {
                     closest_match = distance;
                     // For a non-jointed bone, interacting with it adjusts the
