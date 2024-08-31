@@ -49,12 +49,17 @@ is single-pass and produces stable results.</p>
 settings of a basic humanoid skeleton:</p>
 
 <div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">let </span><span class="kw-2">mut </span>skeleton = Skeleton::default();
+
 <span class="comment">// Create our root bone: the spine
-</span><span class="kw">let </span>spine = skeleton.push_bone(BoneKind::Rigid { length: <span class="number">3. </span>}, <span class="string">"spine"</span>);
+</span><span class="kw">let </span>spine = skeleton.push_bone(BoneKind::Rigid { length: <span class="number">3. </span>}.with_label(<span class="string">"spine"</span>));
 <span class="comment">// Create the right-half of the hips.
-</span><span class="kw">let </span>r_hip = skeleton.push_bone(BoneKind::Rigid { length: <span class="number">0.5 </span>}, <span class="string">"r_hip"</span>);
+</span><span class="kw">let </span>r_hip = skeleton.push_bone(BoneKind::Rigid { length: <span class="number">0.5 </span>}.with_label(<span class="string">"r_hip"</span>));
 <span class="comment">// Connect the right hip to the spine.
-</span>skeleton.push_joint(Rotation::degrees(-<span class="number">90.</span>), spine.axis_a(), r_hip.axis_a());
+</span>skeleton.push_joint(Joint::new(
+    Angle::degrees(-<span class="number">90.</span>),
+    spine.axis_a(),
+    r_hip.axis_a(),
+));
 <span class="comment">// Create the right leg as a jointed bone with equal sizes for the upper and
 // lower leg.
 </span><span class="kw">let </span>r_leg = skeleton.push_bone(
@@ -62,16 +67,24 @@ settings of a basic humanoid skeleton:</p>
         start_length: <span class="number">1.5</span>,
         end_length: <span class="number">1.5</span>,
         inverse: <span class="bool-val">true</span>,
-    },
-    <span class="string">"r_leg"</span>,
+    }
+    .with_label(<span class="string">"r_leg"</span>),
 );
 
 <span class="comment">// Connect the right leg to the right hip.
-</span>skeleton.push_joint(Rotation::degrees(-<span class="number">90.</span>), r_hip.axis_b(), r_leg.axis_a());
+</span>skeleton.push_joint(Joint::new(
+    Angle::degrees(<span class="number">0.</span>),
+    r_hip.axis_b(),
+    r_leg.axis_a(),
+));
 <span class="comment">// Create the right foot.
-</span><span class="kw">let </span>r_foot = skeleton.push_bone(BoneKind::Rigid { length: <span class="number">0.5 </span>}, <span class="string">"r_foot"</span>);
+</span><span class="kw">let </span>r_foot = skeleton.push_bone(BoneKind::Rigid { length: <span class="number">0.5 </span>}.with_label(<span class="string">"r_foot"</span>));
 <span class="comment">// Connect the right foot to the right leg.
-</span><span class="kw">let </span>r_ankle_id = skeleton.push_joint(Rotation::degrees(<span class="number">90.</span>), r_leg.axis_b(), r_foot.axis_a());</code></pre></div>
+</span><span class="kw">let </span>r_ankle_id = skeleton.push_joint(Joint::new(
+    Angle::degrees(<span class="number">90.</span>),
+    r_leg.axis_b(),
+    r_foot.axis_a(),
+));</code></pre></div>
 <p><video src="https://raw.githubusercontent.com/khonsulabs/FunnyBones/gh-pages/20240815-1619-47.3700715.mp4" controls="true" autoplay="true" loop="true" muted="true"></video></p>
 <p>The example draws a small white circle where a desired location for a joint is.
 FunnyBones ensures that all bones remain their original lengths while solving

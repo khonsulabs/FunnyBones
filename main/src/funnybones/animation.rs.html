@@ -315,6 +315,14 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)]
 </span><span class="kw">use </span>std::{
     borrow::Cow,
@@ -324,7 +332,6 @@
     time::Duration,
 };
 
-<span class="kw">use </span>cushy::animation::LinearInterpolate;
 <span class="kw">use </span>easing_function::{easings::StandardEasing, Easing};
 
 <span class="kw">use crate</span>::{Angle, BoneId, Coordinate, JointId, Skeleton, Vector};
@@ -577,7 +584,7 @@
                             },
                             OriginalProperty::Vector(original),
                         ) =&gt; {
-                            skeleton[bone].set_desired_end(<span class="prelude-val">Some</span>(original.lerp(<span class="kw-2">&amp;</span>target, factor)));
+                            skeleton[bone].set_desired_end(<span class="prelude-val">Some</span>(original.lerp(target, factor)));
                         }
                         (
                             ChangeKind::Joint {
@@ -586,7 +593,7 @@
                             },
                             OriginalProperty::Rotation(original),
                         ) =&gt; {
-                            skeleton[joint].set_angle(original.lerp(<span class="kw-2">&amp;</span>target, factor));
+                            skeleton[joint].set_angle(original.lerp(target, factor));
                         }
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                     }
@@ -629,6 +636,15 @@
                 } <span class="kw">else </span>{
                     delta_pos * percent
                 },
+        )
+    }
+}
+
+<span class="kw">impl </span>Lerp <span class="kw">for </span>Vector {
+    <span class="kw">fn </span>lerp(<span class="self">self</span>, target: <span class="self">Self</span>, percent: f32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(
+            <span class="self">self</span>.magnitude.lerp(target.magnitude, percent),
+            <span class="self">self</span>.direction.lerp(target.direction, percent),
         )
     }
 }
