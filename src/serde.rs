@@ -6,7 +6,7 @@ use serde::{
     Deserialize, Serialize,
 };
 
-use crate::{Bone, BoneAxis, BoneKind, Joint, Angle, Skeleton, Coordinate};
+use crate::{Angle, Bone, BoneAxis, BoneKind, Joint, Skeleton, Vector};
 
 impl Serialize for Skeleton {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -106,7 +106,7 @@ struct DeserializedBone {
     label: String,
     kind: BoneKind,
     #[serde(default)]
-    target: Option<Coordinate>,
+    target: Option<Vector>,
 }
 
 impl Serialize for Joint {

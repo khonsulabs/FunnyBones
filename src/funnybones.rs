@@ -10,7 +10,7 @@ use cushy::{
 };
 use funnybones::{
     cushy::skeleton_canvas::{SkeletonCanvas, SkeletonMutation},
-    BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Angle, Skeleton, Coordinate,
+    Angle, BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Skeleton, Vector,
 };
 
 #[derive(Default, Eq, PartialEq, Debug, Clone, Copy)]
@@ -168,7 +168,7 @@ impl EditingSkeleton {
     }
 
     fn find_joint(&self, id: JointId) -> Option<SkeletalBone> {
-        let index = id.index() - 1; // The root bone has a simulated joint we get to skip.
+        let index = id.index();
         match Self::find_joint_in(&self.root.connected_bones, index) {
             ControlFlow::Continue(index) => match Self::find_joint_in(&self.a_bones, index) {
                 ControlFlow::Break(bone) => Some(bone),
@@ -204,7 +204,7 @@ struct SkeletalBone {
     length: Dynamic<f32>,
     jointed: Dynamic<Option<f32>>,
     inverse: Dynamic<bool>,
-    desired_end: Dynamic<Option<Coordinate>>,
+    desired_end: Dynamic<Option<Vector>>,
     connected_bones: Dynamic<Vec<SkeletalBone>>,
 }
 

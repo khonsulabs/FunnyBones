@@ -38,5 +38,5 @@ missing_panics_doc = "allow"
 unsafe_code = "forbid"
 missing_docs = "warn"
 
-[patch."https://github.com/khonsulabs/cushy"]
-cushy = { path = "../cushy" }
+# [patch."https://github.com/khonsulabs/cushy"]
+# cushy = { path = "../cushy" }

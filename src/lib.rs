@@ -5,7 +5,7 @@ use std::{
     collections::{HashMap, HashSet},
     f32::consts::PI,
     fmt::{Debug, Display},
-    ops::{Add, Deref, Div, Index, IndexMut, Mul, Neg, Sub},
+    ops::{Add, AddAssign, Deref, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign},
     sync::Arc,
     vec::Vec,
 };
@@ -52,6 +52,12 @@ impl Coordinate {
     #[must_use]
     pub fn as_rotation(self) -> Angle {
         Angle::radians(self.y.atan2(self.x))
+    }
+
+    /// Returns a vector pointing from `self` to `other`.
+    #[must_use]
+    pub fn vector_to(self, other: Coordinate) -> Vector {
+        Vector::from(other - self)
     }
 }
 
@@ -194,11 +200,23 @@ impl Add for Angle {
     }
 }
 
+impl AddAssign for Angle {
+    fn add_assign(&mut self, rhs: Self) {
+        self.radians = (*self + rhs).radians;
+    }
+}
+
 impl Sub for Angle {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
         Self::radians(self.radians - rhs.radians)
+    }
+}
+
+impl SubAssign for Angle {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.radians = (*self - rhs).radians;
     }
 }
 
@@ -211,7 +229,8 @@ impl Neg for Angle {
 }
 
 /// A 2D Euclidean vector.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct Vector {
     /// The length of the vector.
     pub magnitude: f32,
@@ -233,8 +252,8 @@ impl Vector {
 impl From<Vector> for Coordinate {
     fn from(vec: Vector) -> Self {
         Self {
-            x: vec.magnitude * vec.direction.sin(),
-            y: -vec.magnitude * vec.direction.cos(),
+            x: vec.magnitude * vec.direction.cos(),
+            y: vec.magnitude * vec.direction.sin(),
         }
     }
 }
@@ -261,6 +280,24 @@ impl Sub<Vector> for Coordinate {
 
     fn sub(self, rhs: Vector) -> Self::Output {
         self - Coordinate::from(rhs)
+    }
+}
+
+impl Add<Angle> for Vector {
+    type Output = Self;
+
+    fn add(mut self, rhs: Angle) -> Self::Output {
+        self.direction += rhs;
+        self
+    }
+}
+
+impl Sub<Angle> for Vector {
+    type Output = Self;
+
+    fn sub(mut self, rhs: Angle) -> Self::Output {
+        self.direction -= rhs;
+        self
     }
 }
 
@@ -295,6 +332,19 @@ impl BoneKind {
         LabeledBoneKind {
             kind: self,
             label: label.into(),
+        }
+    }
+
+    /// Returns the full length of this bone.
+    #[must_use]
+    pub fn full_length(&self) -> f32 {
+        match self {
+            BoneKind::Rigid { length } => *length,
+            BoneKind::Jointed {
+                start_length,
+                end_length,
+                ..
+            } => *start_length + *end_length,
         }
     }
 }
@@ -339,8 +389,8 @@ impl Borrow<str> for ArcString {
 /// A collection of [`Bone`]s. connected by [`Joint`]s.
 #[derive(Default, Debug, PartialEq)]
 pub struct Skeleton {
-    initial_joint: Option<JointId>,
     bones: Vec<Bone>,
+    rotation: Angle,
     joints: Vec<Joint>,
     connections: HashMap<BoneAxis, Vec<JointId>>,
     generation: usize,
@@ -358,11 +408,7 @@ impl Skeleton {
     pub fn push_bone(&mut self, bone: impl Into<LabeledBoneKind>) -> BoneId {
         let bone = bone.into();
         let id = BoneId(u16::try_from(self.bones.len()).expect("too many bones"));
-        if id == BoneId(0) {
-            let joint = self.push_joint(Joint::new(Angle::default(), id.axis_a(), id.axis_a()));
-            self.initial_joint = Some(joint);
-            self.connections.insert(id.axis_a(), vec![joint]);
-        }
+
         let label = if bone.label.is_empty() {
             None
         } else {
@@ -379,6 +425,7 @@ impl Skeleton {
             joint_pos: None,
             end: Coordinate::default(),
             desired_end: None,
+            entry_angle: Angle::default(),
         });
         id
     }
@@ -445,16 +492,13 @@ impl Skeleton {
 
     /// Sets a base rotation to apply to the entire skeleton.
     pub fn set_rotation(&mut self, rotation: Angle) {
-        let joint = self.initial_joint.expect("root bone must be defined");
-        let joint = &mut self[joint];
-        joint.angle = rotation;
+        self.rotation = rotation;
     }
 
     /// Returns the base rotation being applied to the entire skeleton.
     #[must_use]
-    pub fn rotation(&self) -> Angle {
-        let joint = self.initial_joint.expect("root bone must be defined");
-        self[joint].angle
+    pub const fn rotation(&self) -> Angle {
+        self.rotation
     }
 
     /// Updates the solved positions of all bones in this skeleton that are
@@ -462,14 +506,34 @@ impl Skeleton {
     pub fn solve(&mut self) {
         if !self.bones.is_empty() {
             self.generation = self.generation.wrapping_add(1);
-            self.solve_axis(BoneId(0).axis_a());
+            self.solve_axis();
         }
     }
 
-    fn solve_axis(&mut self, axis: BoneAxis) {
+    fn solve_axis(&mut self) {
         let mut axis_solved = HashSet::new();
-        let mut to_solve = vec![(axis, None, Angle::default(), false)];
-        while let Some((axis, current_position, current_rotation, inverse_root)) = to_solve.pop() {
+        let root_bone = &mut self.bones[0];
+        let (end, mid) = determine_end_position(
+            root_bone.start,
+            root_bone.desired_end,
+            self.rotation,
+            Angle::radians(0.),
+            &root_bone.kind,
+        );
+        root_bone.entry_angle = self.rotation;
+        root_bone.end = end;
+        root_bone.joint_pos = mid;
+        let angle = root_bone.final_vector().direction;
+
+        let mut to_solve = vec![
+            (
+                root_bone.id.axis_a(),
+                root_bone.start,
+                angle + Angle::radians(PI),
+            ),
+            (root_bone.id.axis_b(), root_bone.end, angle),
+        ];
+        while let Some((axis, current_position, current_rotation)) = to_solve.pop() {
             if !axis_solved.insert(axis) {
                 continue;
             }
@@ -478,8 +542,15 @@ impl Skeleton {
                 continue;
             };
 
+            println!(
+                "Solving {axis:?} - {}",
+                self.bones[axis.bone.index()]
+                    .label
+                    .as_ref()
+                    .map_or("", |s| s)
+            );
             for joint_id in connections {
-                let joint = &mut self.joints[usize::from(joint_id.0)];
+                let joint = &mut self.joints[joint_id.index()];
                 let other_axis = joint.other_axis(axis);
                 let bone = &mut self.bones[other_axis.bone.index()];
                 if bone.generation == self.generation {
@@ -488,54 +559,31 @@ impl Skeleton {
                     // each bone a single time.
                     continue;
                 }
+                println!(
+                    "{joint_id:?}{} -> {other_axis:?}{} at {current_rotation}",
+                    joint.label.as_ref().map_or("", |s| s),
+                    bone.label.as_ref().map_or("", |s| s)
+                );
                 bone.generation = self.generation;
-                joint.calculated_position = if let Some(current_position) = current_position {
-                    bone.start = current_position;
-                    current_position
-                } else {
-                    debug_assert_eq!(axis.bone.0, 0);
-                    bone.start
-                };
+                bone.entry_angle = current_rotation;
+                bone.start = current_position;
+                joint.calculated_position = current_position;
 
-                let angle = if inverse_root {
-                    Angle::radians(PI) - joint.angle
-                } else {
-                    joint.angle
-                };
-
-                let mut next_rotation = current_rotation + angle;
                 let (end, mid) = determine_end_position(
-                    joint.calculated_position,
+                    current_position,
                     bone.desired_end,
-                    next_rotation,
+                    current_rotation,
+                    joint.angle,
                     &bone.kind,
                 );
                 bone.end = end;
                 bone.joint_pos = mid;
-                if let Some(mid) = mid {
-                    let final_delta = end - mid;
-                    let rotation = final_delta.as_rotation();
-                    // TODO I don't know why rotating by 90 degrees fixes
-                    // everything here. It feels like atan2 should be giving us
-                    // the correct rotation, or the correction amount should be
-                    // driven by an input angle, but a fixed correction amount
-                    // seems to be the correct answer. Without this, a joint
-                    // angle of 0 sticks out at a perpendicular angle.
-                    next_rotation = rotation + Angle::radians(PI / 2.);
-                }
 
-                if axis == BoneId(0).axis_a() && other_axis == axis {
-                    // The first joint doesn't have any real connection, so we
-                    // must manually traverse the other side of the root bone.
-                    to_solve.push((
-                        axis.bone.axis_b(),
-                        Some(self.bones[0].end),
-                        current_rotation,
-                        true,
-                    ));
-                } else {
-                    to_solve.push((other_axis.inverse(), Some(bone.end), next_rotation, true));
-                }
+                to_solve.push((
+                    other_axis.inverse(),
+                    bone.end,
+                    bone.final_vector().direction,
+                ));
             }
         }
     }
@@ -543,38 +591,35 @@ impl Skeleton {
 
 fn determine_end_position(
     start: Coordinate,
-    desired_end: Option<Coordinate>,
-    angle: Angle,
+    desired_end: Option<Vector>,
+    current_rotation: Angle,
+    joint_angle: Angle,
     bone: &BoneKind,
 ) -> (Coordinate, Option<Coordinate>) {
     match bone {
-        BoneKind::Rigid { length } => (start + Vector::new(*length, angle), None),
+        BoneKind::Rigid { length } => (
+            start + Vector::new(*length, current_rotation + joint_angle),
+            None,
+        ),
         BoneKind::Jointed {
             start_length,
             end_length,
             inverse,
         } => {
             if let Some(desired_end) = desired_end {
-                let delta = desired_end - start;
-                let desired_angle = delta.as_rotation() + Angle::radians(PI / 2.);
-                let distance = delta.magnitude();
+                let desired_angle = desired_end.direction + current_rotation;
+                let distance = desired_end.magnitude;
                 let full_length = start_length + end_length;
                 let minimum_size = (start_length - end_length).abs();
-                let (capped, desired_length) = if distance < minimum_size {
-                    (true, minimum_size)
+                let desired_length = if distance < minimum_size {
+                    minimum_size
                 } else if distance > full_length {
-                    (true, full_length)
+                    full_length
                 } else {
-                    (false, distance)
+                    distance
                 };
 
-                let end = if capped {
-                    // We need to cap the end point along this sloped line
-                    start + Vector::new(desired_length, desired_angle)
-                } else {
-                    // The end position is valid
-                    desired_end
-                };
+                let end = start + Vector::new(desired_length, desired_angle);
 
                 let joint = get_third_point(
                     *inverse,
@@ -587,8 +632,8 @@ fn determine_end_position(
 
                 (end, Some(joint))
             } else {
-                let joint = start + Vector::new(*start_length, angle);
-                let end = joint + Vector::new(*end_length, angle);
+                let joint = start + Vector::new(*start_length, current_rotation);
+                let end = joint + Vector::new(*end_length, current_rotation);
                 (end, Some(joint))
             }
         }
@@ -675,7 +720,8 @@ pub struct Bone {
     start: Coordinate,
     joint_pos: Option<Coordinate>,
     end: Coordinate,
-    desired_end: Option<Coordinate>,
+    desired_end: Option<Vector>,
+    entry_angle: Angle,
 }
 
 impl Bone {
@@ -691,20 +737,32 @@ impl Bone {
         self.id.0 == 0
     }
 
-    /// Sets the location to aim the end of this bone towards.
+    /// Returns the kind of this bone.
+    #[must_use]
+    pub const fn kind(&self) -> &BoneKind {
+        &self.kind
+    }
+
+    /// Sets a relative position to aim the end of this bone towards.
     ///
     /// The end of the bone that is aimed is the end that is furthest from the
     /// root of the skeleton.
     ///
     /// This setting only impacts [`BoneKind::Jointed`] bones.
-    pub fn set_desired_end(&mut self, end: Option<Coordinate>) {
+    pub fn set_desired_end(&mut self, end: Option<Vector>) {
         self.desired_end = end;
     }
 
     /// Returns the location this bone is being aimed towards.
     #[must_use]
-    pub const fn desired_end(&self) -> Option<Coordinate> {
+    pub const fn desired_end(&self) -> Option<Vector> {
         self.desired_end
+    }
+
+    /// Returns the angle of the previous bone segment connecting to this bone.
+    #[must_use]
+    pub const fn entry_angle(&self) -> Angle {
+        self.entry_angle
     }
 
     /// Returns the solved start position of this bone.
@@ -717,6 +775,13 @@ impl Bone {
     #[must_use]
     pub const fn end(&self) -> Coordinate {
         self.end
+    }
+
+    /// Returns a vector representing the final segment in this bone.
+    #[must_use]
+    pub fn final_vector(&self) -> Vector {
+        let start = self.joint_pos.unwrap_or(self.start);
+        start.vector_to(self.end)
     }
 
     /// If this is a [`BoneKind::Jointed`] bone, returns the solved position of

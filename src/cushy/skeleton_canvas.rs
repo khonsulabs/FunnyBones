@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 use core::f32;
 
-use crate::{BoneEnd, BoneId, JointId, Angle, Skeleton, Coordinate};
+use crate::{Angle, BoneEnd, BoneId, Coordinate, JointId, Skeleton, Vector};
 use cushy::{
     context::{EventContext, GraphicsContext, LayoutContext},
     figures::{
@@ -145,9 +145,15 @@ impl Widget for SkeletonCanvas {
             context.gfx.draw_shape(&path.stroke(stroke));
 
             if selected {
-                let end = bone.desired_end().unwrap_or_else(|| bone.end());
-
+                let end = if let Some(desired_end) =
+                    bone.solved_joint().and_then(|_| bone.desired_end())
+                {
+                    bone.start() + (desired_end + bone.entry_angle())
+                } else {
+                    bone.end()
+                };
                 let end = self.vector_position(end);
+
                 context.gfx.draw_shape(
                     Shape::filled_circle(Px::new(10), stroke.color, Origin::Center)
                         .translate_by(end),
@@ -170,10 +176,16 @@ impl Widget for SkeletonCanvas {
         let mut closest_match = 0.1;
         let current_hover = self.hovering.take();
         for bone in skeleton.bones() {
+            let mut distance = (location - bone.end()).magnitude() / 10.;
             if let Some(mid) = bone.solved_joint() {
                 // This can have its desired_end set
-                let mut distance = distance_to_line(location, bone.start(), mid)
-                    .min(distance_to_line(location, mid, bone.end()));
+                distance = distance.min(
+                    distance_to_line(location, bone.start(), mid).min(distance_to_line(
+                        location,
+                        mid,
+                        bone.end(),
+                    )),
+                );
                 if let Some(desired_end) = bone.desired_end() {
                     distance = distance.min((location - desired_end).magnitude());
                 }
@@ -252,17 +264,15 @@ impl Widget for SkeletonCanvas {
                         }
                         let joint = &skeleton[joint_id];
                         let bone_a = &skeleton[joint.bone_a.bone];
+                        let bone_b = &skeleton[joint.bone_b.bone];
+                        let bone_a_rotation = bone_b.entry_angle();
                         let start = bone_a.solved_joint().unwrap_or_else(|| bone_a.start());
-                        let (start, end, inverse) = match joint.bone_a.end {
-                            BoneEnd::A => (bone_a.end(), start, false),
-                            BoneEnd::B => (start, bone_a.end(), true),
+                        let end = match joint.bone_a.end {
+                            BoneEnd::A => start,
+                            BoneEnd::B => bone_a.end(),
                         };
                         let new_bone_rotation = (location - end).as_rotation();
-                        let bone_a_rotation = (start - end).as_rotation();
-                        let mut rotation = new_bone_rotation - bone_a_rotation;
-                        if inverse {
-                            rotation = -rotation;
-                        };
+                        let rotation = new_bone_rotation - bone_a_rotation;
                         drop(skeleton);
 
                         if let Some(on_mutate) = &mut self.on_mutate {
@@ -274,10 +284,14 @@ impl Widget for SkeletonCanvas {
                     }
                     Target::DesiredEnd(bone) => {
                         if let Some(on_mutate) = &mut self.on_mutate {
-                            on_mutate.invoke(SkeletonMutation::SetDesiredEnd {
-                                bone,
-                                end: location,
-                            });
+                            let mut skeleton = self.skeleton.lock();
+                            if skeleton.generation == 0 {
+                                skeleton.solve();
+                            }
+                            let end = Vector::from(location - skeleton[bone].start())
+                                - skeleton[bone].entry_angle();
+                            drop(skeleton);
+                            on_mutate.invoke(SkeletonMutation::SetDesiredEnd { bone, end });
                         }
                     }
                 }
@@ -333,6 +347,6 @@ struct DragInfo {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SkeletonMutation {
-    SetDesiredEnd { bone: BoneId, end: Coordinate },
+    SetDesiredEnd { bone: BoneId, end: Vector },
     SetJointRotation { joint: JointId, rotation: Angle },
 }

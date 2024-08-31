@@ -1,7 +1,6 @@
 //! A basic 2d humanoid skeleton with sliders powered by Cushy.
 #![allow(clippy::too_many_lines)]
 use core::f32;
-use std::ops::RangeInclusive;
 
 use cushy::{
     figures::{
@@ -18,11 +17,12 @@ use cushy::{
     widgets::{slider::Slidable, Canvas},
     Run,
 };
-use funnybones::{Angle, BoneId, BoneKind, Coordinate, Joint, JointId, Skeleton};
+use funnybones::{Angle, BoneId, BoneKind, Joint, JointId, Skeleton, Vector};
 
 fn main() {
     // begin rustme snippet: readme
     let mut skeleton = Skeleton::default();
+
     // Create our root bone: the spine
     let spine = skeleton.push_bone(BoneKind::Rigid { length: 3. }.with_label("spine"));
     // Create the right-half of the hips.
@@ -46,7 +46,7 @@ fn main() {
 
     // Connect the right leg to the right hip.
     skeleton.push_joint(Joint::new(
-        Angle::degrees(-90.),
+        Angle::degrees(0.),
         r_hip.axis_b(),
         r_leg.axis_a(),
     ));
@@ -102,7 +102,7 @@ fn main() {
         }
         .with_label("r_arm"),
     );
-    let r_arm_socket = skeleton.push_joint(Joint::new(
+    skeleton.push_joint(Joint::new(
         Angle::degrees(-90.),
         r_shoulder.axis_b(),
         r_arm.axis_a(),
@@ -128,7 +128,7 @@ fn main() {
         }
         .with_label("l_arm"),
     );
-    let l_arm_socket = skeleton.push_joint(Joint::new(
+    skeleton.push_joint(Joint::new(
         Angle::degrees(90.),
         l_shoulder.axis_b(),
         l_arm.axis_a(),
@@ -149,6 +149,16 @@ fn main() {
     ));
 
     let skeleton = Dynamic::new(skeleton);
+
+    let rotation = Dynamic::new(Angle::degrees(-90.));
+    rotation
+        .for_each_cloned({
+            let skeleton = skeleton.clone();
+            move |rotation| {
+                skeleton.lock().set_rotation(rotation);
+            }
+        })
+        .persist();
 
     Canvas::new({
         let skeleton = skeleton.clone();
@@ -205,6 +215,7 @@ fn main() {
                 }
 
                 if let Some(handle) = s[bone].desired_end() {
+                    let handle = s[bone].start() + (handle + s[bone].entry_angle());
                     let handle = handle.to_vec::<Point<f32>>().map(|d| scale * d);
                     context.gfx.draw_shape(
                         Shape::filled_circle(Px::new(3), Color::WHITE, Origin::Center)
@@ -220,24 +231,43 @@ fn main() {
     })
     .expand()
     .and(
-        bone_widget("Lower Left Leg", &skeleton, l_leg, 0.5..=3.0, 0.5..=3.0)
+        "Overall Rotation"
+            .and(rotation.slider())
+            .into_rows()
+            .contain()
+            .and(bone_widget(
+                "Left Leg",
+                Angle::degrees(90.),
+                &skeleton,
+                l_leg,
+            ))
             .and(joint_widget("Left Ankle", &skeleton, l_ankle_id))
             .and(bone_widget(
-                "Lower Right Leg",
+                "Right Leg",
+                Angle::degrees(-90.),
                 &skeleton,
                 r_leg,
-                -3.0..=-0.5,
-                0.5..=3.0,
             ))
             .and(joint_widget("Right Ankle", &skeleton, r_ankle_id))
-            .and(joint_widget("Left Shoulder", &skeleton, l_arm_socket))
+            .and(bone_widget(
+                "Left Arm",
+                Angle::degrees(0.),
+                &skeleton,
+                l_arm,
+            ))
             .and(joint_widget("Left Wrist", &skeleton, l_wrist_id))
-            .and(joint_widget("Right Shoulder", &skeleton, r_arm_socket))
+            .and(bone_widget(
+                "Right Arm",
+                Angle::degrees(0.),
+                &skeleton,
+                r_arm,
+            ))
             .and(joint_widget("Right Wrist", &skeleton, r_wrist_id))
             .and(joint_widget("Neck", &skeleton, neck))
             .into_rows()
             .pad()
-            .width(Lp::inches(2)),
+            .width(Lp::inches(2))
+            .vertical_scroll(),
     )
     .into_columns()
     .expand()
@@ -262,37 +292,40 @@ fn joint_widget(label: &str, skeleton: &Dynamic<Skeleton>, joint: JointId) -> im
 
 fn bone_widget(
     label: &str,
+    initial_angle: Angle,
     skeleton: &Dynamic<Skeleton>,
     bone: BoneId,
-    x: RangeInclusive<f32>,
-    y: RangeInclusive<f32>,
 ) -> impl MakeWidget {
-    let bone_y = Dynamic::new(skeleton.lock()[bone].desired_end().unwrap_or_default().y);
-    let bone_x = Dynamic::new(skeleton.lock()[bone].desired_end().unwrap_or_default().x);
+    let bone_magnitude = Dynamic::new(skeleton.lock()[bone].kind().full_length());
+    let bone_direction = Dynamic::new(initial_angle);
 
-    bone_y
+    let length = skeleton.lock()[bone].kind().full_length();
+
+    bone_direction
         .for_each({
             let skeleton = skeleton.clone();
-            move |y| {
+            move |direction| {
                 let mut skeleton = skeleton.lock();
                 let current_end = skeleton[bone].desired_end().unwrap_or_default();
-                skeleton[bone].set_desired_end(Some(Coordinate::new(current_end.x, *y)));
+                skeleton[bone]
+                    .set_desired_end(Some(Vector::new(current_end.magnitude, *direction)));
             }
         })
         .persist();
-    bone_x
+    bone_magnitude
         .for_each({
             let skeleton = skeleton.clone();
-            move |x| {
+            move |magnitude| {
                 let mut skeleton = skeleton.lock();
                 let current_end = skeleton[bone].desired_end().unwrap_or_default();
-                skeleton[bone].set_desired_end(Some(Coordinate::new(*x, current_end.y)));
+                skeleton[bone]
+                    .set_desired_end(Some(Vector::new(*magnitude, current_end.direction)));
             }
         })
         .persist();
     label
-        .and(bone_x.slider_between(*x.start(), *x.end()))
-        .and(bone_y.slider_between(*y.start(), *y.end()))
+        .and(bone_magnitude.slider_between(0., length))
+        .and(bone_direction.slider())
         .into_rows()
         .contain()
 }

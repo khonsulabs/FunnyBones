@@ -7,9 +7,10 @@ use std::{
     time::Duration,
 };
 
+use cushy::animation::LinearInterpolate;
 use easing_function::{easings::StandardEasing, Easing};
 
-use crate::{BoneId, JointId, Angle, Skeleton, Coordinate};
+use crate::{Angle, BoneId, Coordinate, JointId, Skeleton, Vector};
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Animation(Arc<AnimationData>);
@@ -166,7 +167,7 @@ impl From<ChangeKind> for Change {
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ChangeKind {
-    Bone { bone: BoneId, position: Coordinate },
+    Bone { bone: BoneId, position: Vector },
     Joint { joint: JointId, rotation: Angle },
 }
 
@@ -179,7 +180,7 @@ impl ChangeKind {
 
 enum OriginalProperty {
     Rotation(Angle),
-    Vector(Coordinate),
+    Vector(Vector),
 }
 
 pub struct RunningAnimation {
@@ -237,9 +238,9 @@ impl RunningAnimation {
                     self.frame_props.reserve(frame.changes.len());
                     for change in &frame.changes {
                         self.frame_props.push(match change.kind {
-                            ChangeKind::Bone { bone, .. } => {
-                                OriginalProperty::Vector(skeleton[bone].end())
-                            }
+                            ChangeKind::Bone { bone, .. } => OriginalProperty::Vector(
+                                skeleton[bone].start().vector_to(skeleton[bone].end()),
+                            ),
 
                             ChangeKind::Joint { joint, .. } => {
                                 OriginalProperty::Rotation(skeleton[joint].angle())
@@ -259,7 +260,7 @@ impl RunningAnimation {
                             },
                             OriginalProperty::Vector(original),
                         ) => {
-                            skeleton[bone].set_desired_end(Some(original.lerp(target, factor)));
+                            skeleton[bone].set_desired_end(Some(original.lerp(&target, factor)));
                         }
                         (
                             ChangeKind::Joint {
@@ -268,7 +269,7 @@ impl RunningAnimation {
                             },
                             OriginalProperty::Rotation(original),
                         ) => {
-                            skeleton[joint].set_angle(original.lerp(target, factor));
+                            skeleton[joint].set_angle(original.lerp(&target, factor));
                         }
                         _ => unreachable!(),
                     }
