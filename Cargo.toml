@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-editor = ["serde", "cushy", "dep:anyhow"]
+editor = ["serde", "cushy"]
 cushy = ["dep:cushy"]
 serde = ["dep:serde", "easing-function/serde"]
 
@@ -23,7 +23,6 @@ easing-function = "0.1.0"
 
 # Editor dependencies
 cushy = { git = "https://github.com/khonsulabs/cushy", optional = true }
-anyhow = { version = "1.0.86", optional = true, features = ["backtrace"] }
 
 [dev-dependencies]
 pot = "3.0.0"

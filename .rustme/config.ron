@@ -31,7 +31,7 @@ Configuration(
     glossaries: [
         "https://github.com/khonsulabs/.github/raw/main/snippets/glossary.ron",
         {
-            "msrv": "1.65",
+            "msrv": "1.70",
             "ref-name": (
                 default: "main",
                 release: "v0.1.0",

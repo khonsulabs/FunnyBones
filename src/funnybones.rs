@@ -69,7 +69,7 @@ fn add_bones_to_skeleton(
     }
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> cushy::Result {
     let editing_skeleton = EditingSkeleton::default();
     let (watcher, skeleton) = ChangeAggregator::new({
         let editing_skeleton = editing_skeleton.clone();
@@ -123,8 +123,7 @@ fn main() -> anyhow::Result<()> {
                 .expand(),
         )
         .into_columns()
-        .run()?;
-    Ok(())
+        .run()
 }
 
 #[derive(Clone, Debug, PartialEq, Default)]
