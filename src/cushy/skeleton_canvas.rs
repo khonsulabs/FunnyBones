@@ -3,18 +3,21 @@ use core::f32;
 
 use crate::{Angle, BoneEnd, BoneId, Coordinate, JointId, Skeleton, Vector};
 use cushy::{
-    context::{EventContext, GraphicsContext, LayoutContext},
+    context::{EventContext, GraphicsContext, LayoutContext, Trackable},
     figures::{
         units::{Lp, Px, UPx},
         FloatConversion, IntoComponents, Point, Rect, Round, ScreenScale, Size,
     },
     kludgine::{
-        app::winit::{event::MouseButton, window::CursorIcon},
+        app::winit::{
+            event::{MouseButton, MouseScrollDelta, TouchPhase},
+            window::CursorIcon,
+        },
         shapes::{PathBuilder, Shape, StrokeOptions},
         DrawableExt, Origin,
     },
     styles::Color,
-    value::{Dynamic, DynamicRead},
+    value::{Destination, Dynamic, DynamicRead, Source},
     widget::{Callback, EventHandling, Widget, HANDLED, IGNORED},
     window::DeviceId,
     ConstraintLimit,
@@ -24,9 +27,10 @@ use cushy::{
 pub struct SkeletonCanvas {
     skeleton: Dynamic<Skeleton>,
     hovering: Option<Target>,
-    scale: f32,
+    scale: Dynamic<f32>,
     handle_size: f32,
-    maximum_scale: f32,
+    maximum_scale: Dynamic<f32>,
+    minimum_scale: Dynamic<f32>,
     offset: Point<Px>,
     drag: Option<DragInfo>,
     on_mutate: Option<Callback<SkeletonMutation>>,
@@ -35,16 +39,34 @@ pub struct SkeletonCanvas {
 impl SkeletonCanvas {
     #[must_use]
     pub fn new(skeleton: Dynamic<Skeleton>) -> Self {
+        let maximum_scale = Dynamic::new(0.);
+        let minimum_scale = maximum_scale.map_each_cloned(|s| s / 100.);
         Self {
             skeleton,
             hovering: None,
             handle_size: 0.1,
-            scale: f32::MAX,
-            maximum_scale: 0.,
+            scale: Dynamic::new(f32::MAX),
+            maximum_scale,
+            minimum_scale,
             offset: Point::default(),
             drag: None,
             on_mutate: None,
         }
+    }
+
+    #[must_use]
+    pub fn maximum_scale(&self) -> &Dynamic<f32> {
+        &self.maximum_scale
+    }
+
+    #[must_use]
+    pub fn minimum_scale(&self) -> &Dynamic<f32> {
+        &self.minimum_scale
+    }
+
+    #[must_use]
+    pub fn scale(&self) -> &Dynamic<f32> {
+        &self.scale
     }
 
     #[must_use]
@@ -57,14 +79,17 @@ impl SkeletonCanvas {
     }
 
     fn coordinate_to_point(&self, vector: Coordinate) -> Point<Px> {
-        (vector * self.scale).to_vec::<Point<f32>>().map(Px::from) + self.offset
+        (vector * self.scale.get())
+            .to_vec::<Point<f32>>()
+            .map(Px::from)
+            + self.offset
     }
 
     fn point_to_coordinate(&self, position: Point<Px>) -> Coordinate {
         (position - self.offset)
             .map(FloatConversion::into_float)
             .to_vec::<Coordinate>()
-            / self.scale
+            / self.scale.get()
     }
 }
 
@@ -103,18 +128,25 @@ impl Widget for SkeletonCanvas {
             return;
         }
 
-        self.maximum_scale = if zero_height || width_ratio < height_ratio {
+        let maximum_scale = if zero_height || width_ratio < height_ratio {
             width_ratio
         } else {
             height_ratio
         };
-        if self.scale > self.maximum_scale {
-            self.scale = self.maximum_scale;
-        }
+        self.maximum_scale.set(maximum_scale);
+        self.scale.redraw_when_changed(context);
+        let scale = {
+            let mut scale = self.scale.lock();
+            if *scale > maximum_scale {
+                *scale = maximum_scale;
+                scale.prevent_notifications();
+            }
+            *scale
+        };
         let handle_size = Lp::mm(2).into_px(context.gfx.scale()).ceil();
-        self.handle_size = handle_size.into_float() / self.scale;
+        self.handle_size = handle_size.into_float() / scale;
 
-        let root = root_start * self.scale;
+        let root = root_start * scale;
 
         self.offset = (middle - root).to_vec::<Point<f32>>().map(Px::from).floor();
 
@@ -327,6 +359,29 @@ impl Widget for SkeletonCanvas {
         _context: &mut EventContext<'_>,
     ) {
         self.drag = None;
+    }
+
+    #[allow(clippy::cast_possible_truncation)]
+    fn mouse_wheel(
+        &mut self,
+        _device_id: DeviceId,
+        delta: MouseScrollDelta,
+        _phase: TouchPhase,
+        _context: &mut EventContext<'_>,
+    ) -> EventHandling {
+        let maximum_scale = self.maximum_scale.get();
+        let minimum_scale = self.minimum_scale.get();
+        let mut scale = self.scale.lock();
+        let delta = match delta {
+            MouseScrollDelta::LineDelta(_, y_lines) => y_lines,
+            MouseScrollDelta::PixelDelta(pt) => pt.y as f32 / 12.,
+        };
+
+        *scale = (*scale + *scale * delta / 10.)
+            .min(maximum_scale)
+            .max(minimum_scale);
+
+        HANDLED
     }
 
     fn hit_test(&mut self, _location: Point<Px>, _context: &mut EventContext<'_>) -> bool {

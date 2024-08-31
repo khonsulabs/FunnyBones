@@ -88,6 +88,24 @@ fn main() -> cushy::Result {
     let bones_editor = skeleton_editor(&editing_skeleton, &watcher).make_widget();
 
     let mode = Dynamic::<Mode>::default();
+    let canvas = SkeletonCanvas::new(skeleton).on_mutate({
+        move |mutation| match mutation {
+            SkeletonMutation::SetDesiredEnd { bone, end } => editing_skeleton
+                .find_bone(bone)
+                .expect("missing bone")
+                .desired_end
+                .set(Some(end)),
+            SkeletonMutation::SetJointRotation { joint, rotation } => editing_skeleton
+                .find_joint(joint)
+                .expect("missing joint")
+                .joint_angle
+                .set(rotation),
+        }
+    });
+    let zoom = canvas
+        .scale()
+        .clone()
+        .slider_between(canvas.minimum_scale(), canvas.maximum_scale());
 
     [(Mode::Bones, "Bones"), (Mode::Animation, "Animation")]
         .into_iter()
@@ -104,24 +122,7 @@ fn main() -> cushy::Result {
         )
         .into_rows()
         .expand()
-        .and(
-            SkeletonCanvas::new(skeleton)
-                .on_mutate({
-                    move |mutation| match mutation {
-                        SkeletonMutation::SetDesiredEnd { bone, end } => editing_skeleton
-                            .find_bone(bone)
-                            .expect("missing bone")
-                            .desired_end
-                            .set(Some(end)),
-                        SkeletonMutation::SetJointRotation { joint, rotation } => editing_skeleton
-                            .find_joint(joint)
-                            .expect("missing joint")
-                            .joint_angle
-                            .set(rotation),
-                    }
-                })
-                .expand(),
-        )
+        .and(canvas.expand().and(zoom).into_rows().expand())
         .into_columns()
         .run()
 }
