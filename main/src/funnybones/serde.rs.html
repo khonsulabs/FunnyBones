@@ -307,7 +307,7 @@
         other.axis_b(),
     ));
     <span class="kw">let </span>serialized = pot::to_vec(<span class="kw-2">&amp;</span>s).unwrap();
-    <span class="kw">let </span>deserialized: Skeleton = <span class="macro">dbg!</span>(pot::from_slice(<span class="kw-2">&amp;</span>serialized).unwrap());
+    <span class="kw">let </span>deserialized: Skeleton = pot::from_slice(<span class="kw-2">&amp;</span>serialized).unwrap();
     <span class="macro">assert_eq!</span>(deserialized[spine].label(), <span class="string">"spine"</span>);
     <span class="macro">assert_eq!</span>(deserialized[other].label(), <span class="string">""</span>);
     <span class="macro">assert_eq!</span>(deserialized[joint].angle(), Angle::radians(<span class="number">0.</span>));

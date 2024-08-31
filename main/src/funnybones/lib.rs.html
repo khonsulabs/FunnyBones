@@ -948,18 +948,6 @@
 <a href="#948" id="948">948</a>
 <a href="#949" id="949">949</a>
 <a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
 </pre></div><pre class="rust"><code><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">".crate-docs.md"</span>)]
 
 </span><span class="kw">use </span>std::{
@@ -1504,13 +1492,6 @@
                 <span class="kw">continue</span>;
             };
 
-            <span class="macro">println!</span>(
-                <span class="string">"Solving {axis:?} - {}"</span>,
-                <span class="self">self</span>.bones[axis.bone.index()]
-                    .label
-                    .as_ref()
-                    .map_or(<span class="string">""</span>, |s| s)
-            );
             <span class="kw">for </span>joint_id <span class="kw">in </span>connections {
                 <span class="kw">let </span>joint = <span class="kw-2">&amp;mut </span><span class="self">self</span>.joints[joint_id.index()];
                 <span class="kw">let </span>other_axis = joint.other_axis(axis);
@@ -1521,11 +1502,6 @@
                     // each bone a single time.
                     </span><span class="kw">continue</span>;
                 }
-                <span class="macro">println!</span>(
-                    <span class="string">"{joint_id:?}{} -&gt; {other_axis:?}{} at {current_rotation}"</span>,
-                    joint.label.as_ref().map_or(<span class="string">""</span>, |s| s),
-                    bone.label.as_ref().map_or(<span class="string">""</span>, |s| s)
-                );
                 bone.generation = <span class="self">self</span>.generation;
                 bone.entry_angle = current_rotation;
                 bone.start = current_position;

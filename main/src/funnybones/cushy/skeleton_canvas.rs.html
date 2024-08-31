@@ -350,6 +350,19 @@
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
 <a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)]
 </span><span class="kw">use </span>core::f32;
 
@@ -357,8 +370,8 @@
 <span class="kw">use </span>cushy::{
     context::{EventContext, GraphicsContext, LayoutContext},
     figures::{
-        units::{Px, UPx},
-        FloatConversion, IntoComponents, Point, Round, Size,
+        units::{Lp, Px, UPx},
+        FloatConversion, IntoComponents, Point, Round, ScreenScale, Size,
     },
     kludgine::{
         app::winit::{event::MouseButton, window::CursorIcon},
@@ -377,6 +390,7 @@
     skeleton: Dynamic&lt;Skeleton&gt;,
     hovering: <span class="prelude-ty">Option</span>&lt;Target&gt;,
     scale: f32,
+    handle_size: f32,
     maximum_scale: f32,
     offset: Point&lt;Px&gt;,
     drag: <span class="prelude-ty">Option</span>&lt;DragInfo&gt;,
@@ -389,6 +403,7 @@
         <span class="self">Self </span>{
             skeleton,
             hovering: <span class="prelude-val">None</span>,
+            handle_size: <span class="number">0.1</span>,
             scale: f32::MAX,
             maximum_scale: <span class="number">0.</span>,
             offset: Point::default(),
@@ -460,6 +475,9 @@
         <span class="kw">if </span><span class="self">self</span>.scale &gt; <span class="self">self</span>.maximum_scale {
             <span class="self">self</span>.scale = <span class="self">self</span>.maximum_scale;
         }
+        <span class="kw">let </span>handle_size = Lp::mm(<span class="number">2</span>).into_px(context.gfx.scale()).ceil();
+        <span class="self">self</span>.handle_size = handle_size.into_float() / <span class="self">self</span>.scale;
+
         <span class="kw">let </span>root = root_start * <span class="self">self</span>.scale;
 
         <span class="self">self</span>.offset = (middle - root).to_vec::&lt;Point&lt;f32&gt;&gt;().map(Px::from).floor();
@@ -470,7 +488,7 @@
             <span class="kw">let </span>path = <span class="kw">if let </span><span class="prelude-val">Some</span>(joint) = bone.solved_joint() {
                 <span class="kw">let </span>joint = <span class="self">self</span>.vector_position(joint);
                 context.gfx.draw_shape(
-                    Shape::filled_circle(Px::new(<span class="number">4</span>), Color::WHITE, Origin::Center)
+                    Shape::filled_circle(handle_size / <span class="number">2</span>, Color::WHITE, Origin::Center)
                         .translate_by(joint),
                 );
                 PathBuilder::new(<span class="self">self</span>.vector_position(bone.start()))
@@ -483,15 +501,18 @@
                     .build()
             };
             <span class="kw">let </span>(selected, stroke) = <span class="kw">match </span>selected {
-                <span class="prelude-val">Some</span>(Target::DesiredEnd(id)) <span class="kw">if </span>id == bone.id() =&gt; {
-                    (<span class="bool-val">true</span>, StrokeOptions::px_wide(<span class="number">2</span>).colored(Color::RED))
-                }
-                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_b == bone.id().axis_a() =&gt; {
-                    (<span class="bool-val">true</span>, StrokeOptions::px_wide(<span class="number">2</span>).colored(Color::RED))
-                }
-                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_a.bone == bone.id() =&gt; {
-                    (<span class="bool-val">false</span>, StrokeOptions::px_wide(<span class="number">2</span>).colored(Color::BLUE))
-                }
+                <span class="prelude-val">Some</span>(Target::DesiredEnd(id)) <span class="kw">if </span>id == bone.id() =&gt; (
+                    <span class="bool-val">true</span>,
+                    StrokeOptions::px_wide(handle_size / <span class="number">2</span>).colored(Color::RED),
+                ),
+                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_b == bone.id().axis_a() =&gt; (
+                    <span class="bool-val">true</span>,
+                    StrokeOptions::px_wide(handle_size / <span class="number">2</span>).colored(Color::RED),
+                ),
+                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_a.bone == bone.id() =&gt; (
+                    <span class="bool-val">false</span>,
+                    StrokeOptions::px_wide(handle_size / <span class="number">2</span>).colored(Color::BLUE),
+                ),
                 <span class="kw">_ </span>=&gt; (<span class="bool-val">false</span>, StrokeOptions::px_wide(<span class="number">1</span>).colored(Color::WHITE)),
             };
             context.gfx.draw_shape(<span class="kw-2">&amp;</span>path.stroke(stroke));
@@ -507,7 +528,7 @@
                 <span class="kw">let </span>end = <span class="self">self</span>.vector_position(end);
 
                 context.gfx.draw_shape(
-                    Shape::filled_circle(Px::new(<span class="number">10</span>), stroke.color, Origin::Center)
+                    Shape::filled_circle(handle_size, stroke.color, Origin::Center)
                         .translate_by(end),
                 );
             }
@@ -525,21 +546,22 @@
     <span class="kw">fn </span>hover(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: Point&lt;Px&gt;, context: <span class="kw-2">&amp;mut </span>EventContext&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;CursorIcon&gt; {
         <span class="kw">let </span>location = <span class="self">self</span>.position_to_vector(location);
         <span class="kw">let </span>skeleton = <span class="self">self</span>.skeleton.read();
-        <span class="kw">let </span><span class="kw-2">mut </span>closest_match = <span class="number">0.1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>closest_match = <span class="self">self</span>.handle_size;
         <span class="kw">let </span>current_hover = <span class="self">self</span>.hovering.take();
         <span class="kw">for </span>bone <span class="kw">in </span>skeleton.bones() {
-            <span class="kw">let </span><span class="kw-2">mut </span>distance = (location - bone.end()).magnitude() / <span class="number">10.</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>distance = (location - bone.end()).magnitude();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(mid) = bone.solved_joint() {
                 <span class="comment">// This can have its desired_end set
                 </span>distance = distance.min(
-                    distance_to_line(location, bone.start(), mid).min(distance_to_line(
-                        location,
-                        mid,
-                        bone.end(),
-                    )),
+                    distance_to_line(location, bone.start(), mid)
+                        .min(distance_to_line(location, mid, bone.end()))
+                        .max(<span class="self">self</span>.handle_size / <span class="number">10.</span>)
+                        * <span class="number">5.0</span>,
                 );
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(desired_end) = bone.desired_end() {
-                    distance = distance.min((location - desired_end).magnitude());
+                    distance = distance.min(
+                        (location - bone.start() - (desired_end + bone.entry_angle())).magnitude(),
+                    );
                 }
 
                 <span class="kw">if </span>distance &lt; closest_match {
@@ -548,7 +570,11 @@
                 }
             } <span class="kw">else if </span>!bone.is_root() {
                 <span class="comment">// Single line segment
-                </span><span class="kw">let </span>distance = distance_to_line(location, bone.start(), bone.end());
+                </span>distance = distance.min(
+                    distance_to_line(location, bone.start(), bone.end())
+                        .max(<span class="self">self</span>.handle_size / <span class="number">10.</span>)
+                        * <span class="number">5.0</span>,
+                );
                 <span class="kw">if </span>distance &lt; closest_match {
                     closest_match = distance;
                     <span class="comment">// For a non-jointed bone, interacting with it adjusts the
