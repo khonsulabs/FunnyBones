@@ -7,7 +7,6 @@ use std::{
     time::Duration,
 };
 
-use cushy::animation::LinearInterpolate;
 use easing_function::{easings::StandardEasing, Easing};
 
 use crate::{Angle, BoneId, Coordinate, JointId, Skeleton, Vector};
@@ -260,7 +259,7 @@ impl RunningAnimation {
                             },
                             OriginalProperty::Vector(original),
                         ) => {
-                            skeleton[bone].set_desired_end(Some(original.lerp(&target, factor)));
+                            skeleton[bone].set_desired_end(Some(original.lerp(target, factor)));
                         }
                         (
                             ChangeKind::Joint {
@@ -269,7 +268,7 @@ impl RunningAnimation {
                             },
                             OriginalProperty::Rotation(original),
                         ) => {
-                            skeleton[joint].set_angle(original.lerp(&target, factor));
+                            skeleton[joint].set_angle(original.lerp(target, factor));
                         }
                         _ => unreachable!(),
                     }
@@ -312,6 +311,15 @@ impl Lerp for Angle {
                 } else {
                     delta_pos * percent
                 },
+        )
+    }
+}
+
+impl Lerp for Vector {
+    fn lerp(self, target: Self, percent: f32) -> Self {
+        Self::new(
+            self.magnitude.lerp(target.magnitude, percent),
+            self.direction.lerp(target.direction, percent),
         )
     }
 }
