@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Mode"],"fn":["add_bones_to_skeleton","bone_editor","bone_property_editor","bones_editor","main","skeleton_editor"],"struct":["ChangeAggregator","EditingSkeleton","SkeletalBone"]};

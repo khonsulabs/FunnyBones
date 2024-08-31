@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b25d77b18a16a9a4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="funnybones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (feeba198f 2024-08-17)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-cb0df477c2d67d00.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="funnybones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (0d634185d 2024-08-29)" data-channel="nightly" data-search-js="search-acd2e111c9cb27e3.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-cb0df477c2d67d00.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -773,6 +773,193 @@
 <a href="#773" id="773">773</a>
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
 </pre></div><pre class="rust"><code><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">".crate-docs.md"</span>)]
 
 </span><span class="kw">use </span>std::{
@@ -780,25 +967,28 @@
     collections::{HashMap, HashSet},
     f32::consts::PI,
     fmt::{Debug, Display},
-    ops::{Add, Deref, Index, IndexMut, Neg, Sub},
+    ops::{Add, AddAssign, Deref, Div, Index, IndexMut, Mul, Neg, Sub, SubAssign},
     sync::Arc,
+    vec::Vec,
 };
 
 <span class="kw">pub mod </span>animation;
+<span class="attr">#[cfg(feature = <span class="string">"cushy"</span>)]
+</span><span class="kw">pub mod </span>cushy;
 <span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">mod </span>serde;
 
 <span class="doccomment">/// A two dimensionsional offset/measurement.
 </span><span class="attr">#[derive(Default, Clone, Copy, PartialEq, Debug)]
 #[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
-</span><span class="kw">pub struct </span>Vector {
+</span><span class="kw">pub struct </span>Coordinate {
     <span class="doccomment">/// The x-axis component of this vector.
     </span><span class="kw">pub </span>x: f32,
     <span class="doccomment">/// The y-axis component of this vector.
     </span><span class="kw">pub </span>y: f32,
 }
 
-<span class="kw">impl </span>Vector {
+<span class="kw">impl </span>Coordinate {
     <span class="doccomment">/// Returns a new vector from the x and y values.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>new(x: f32, y: f32) -&gt; <span class="self">Self </span>{
@@ -819,9 +1009,32 @@
             y: f(<span class="self">self</span>.y),
         }
     }
+
+    <span class="doccomment">/// Returns the angle formed a line passing through 0,0 towards this vector.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>as_rotation(<span class="self">self</span>) -&gt; Angle {
+        Angle::radians(<span class="self">self</span>.y.atan2(<span class="self">self</span>.x))
+    }
+
+    <span class="doccomment">/// Returns a vector pointing from `self` to `other`.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>vector_to(<span class="self">self</span>, other: Coordinate) -&gt; Vector {
+        Vector::from(other - <span class="self">self</span>)
+    }
 }
 
-<span class="kw">impl </span>Sub <span class="kw">for </span>Vector {
+<span class="kw">impl </span>Add <span class="kw">for </span>Coordinate {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self </span>{
+            x: <span class="self">self</span>.x + rhs.x,
+            y: <span class="self">self</span>.y + rhs.y,
+        }
+    }
+}
+
+<span class="kw">impl </span>Sub <span class="kw">for </span>Coordinate {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
     <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
@@ -832,28 +1045,43 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">"cushy"</span>)]
-</span><span class="kw">impl </span>cushy::figures::IntoComponents&lt;f32&gt; <span class="kw">for </span>Vector {
-    <span class="kw">fn </span>into_components(<span class="self">self</span>) -&gt; (f32, f32) {
-        (<span class="self">self</span>.x, <span class="self">self</span>.y)
+<span class="kw">impl </span>Mul&lt;f32&gt; <span class="kw">for </span>Coordinate {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: f32) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self </span>{
+            x: <span class="self">self</span>.x * rhs,
+            y: <span class="self">self</span>.y * rhs,
+        }
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">"cushy"</span>)]
-</span><span class="kw">impl </span>cushy::figures::FromComponents&lt;f32&gt; <span class="kw">for </span>Vector {
-    <span class="kw">fn </span>from_components(components: (f32, f32)) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(components.<span class="number">0</span>, components.<span class="number">1</span>)
+<span class="kw">impl </span>Div&lt;f32&gt; <span class="kw">for </span>Coordinate {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>div(<span class="self">self</span>, rhs: f32) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self </span>{
+            x: <span class="self">self</span>.x / rhs,
+            y: <span class="self">self</span>.y / rhs,
+        }
     }
 }
 
-<span class="doccomment">/// A value representing a rotation between no rotation and a full rotation.
+<span class="doccomment">/// A value representing a direction.
 </span><span class="attr">#[derive(Clone, Copy, PartialEq, PartialOrd)]
 #[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
-</span><span class="kw">pub struct </span>Rotation {
+</span><span class="kw">pub struct </span>Angle {
     radians: f32,
 }
 
-<span class="kw">impl </span>Rotation {
+<span class="kw">impl </span>Angle {
+    <span class="doccomment">/// The minimum rotation represented by this type.
+    </span><span class="kw">pub const </span>MIN: <span class="self">Self </span>= <span class="self">Self </span>{ radians: <span class="number">0. </span>};
+    <span class="doccomment">/// The maximum rotation represented by this type.
+    </span><span class="kw">pub const </span>MAX: <span class="self">Self </span>= <span class="self">Self </span>{
+        radians: PI * <span class="number">2. </span>- f32::EPSILON,
+    };
+
     <span class="doccomment">/// Returns a rotation representing the given radians.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>radians(radians: f32) -&gt; <span class="self">Self </span>{
@@ -894,43 +1122,39 @@
         }
         <span class="self">self
     </span>}
-}
 
-<span class="attr">#[cfg(feature = <span class="string">"cushy"</span>)]
-</span><span class="kw">impl </span>cushy::animation::PercentBetween <span class="kw">for </span>Rotation {
-    <span class="kw">fn </span>percent_between(<span class="kw-2">&amp;</span><span class="self">self</span>, min: <span class="kw-2">&amp;</span><span class="self">Self</span>, max: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; cushy::animation::ZeroToOne {
-        <span class="self">self</span>.radians.percent_between(<span class="kw-2">&amp;</span>min.radians, <span class="kw-2">&amp;</span>max.radians)
+    <span class="doccomment">/// Returns the cosine of this angle.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>cos(<span class="self">self</span>) -&gt; f32 {
+        <span class="self">self</span>.radians.cos()
+    }
+
+    <span class="doccomment">/// Returns the sine of this angle.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>sin(<span class="self">self</span>) -&gt; f32 {
+        <span class="self">self</span>.radians.sin()
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">"cushy"</span>)]
-</span><span class="kw">impl </span>cushy::animation::LinearInterpolate <span class="kw">for </span>Rotation {
-    <span class="kw">fn </span>lerp(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;</span><span class="self">Self</span>, percent: f32) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            radians: <span class="self">self</span>.radians.lerp(<span class="kw-2">&amp;</span>target.radians, percent),
-        }
-    }
-}
-
-<span class="kw">impl </span>Debug <span class="kw">for </span>Rotation {
+<span class="kw">impl </span>Debug <span class="kw">for </span>Angle {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         Display::fmt(<span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>Rotation {
+<span class="kw">impl </span>Display <span class="kw">for </span>Angle {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">"{}°"</span>, <span class="self">self</span>.to_degrees())
     }
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>Rotation {
+<span class="kw">impl </span>Default <span class="kw">for </span>Angle {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ radians: <span class="number">0. </span>}
     }
 }
 
-<span class="kw">impl </span>Add <span class="kw">for </span>Rotation {
+<span class="kw">impl </span>Add <span class="kw">for </span>Angle {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
     <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
@@ -938,7 +1162,13 @@
     }
 }
 
-<span class="kw">impl </span>Sub <span class="kw">for </span>Rotation {
+<span class="kw">impl </span>AddAssign <span class="kw">for </span>Angle {
+    <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="self">Self</span>) {
+        <span class="self">self</span>.radians = (<span class="kw-2">*</span><span class="self">self </span>+ rhs).radians;
+    }
+}
+
+<span class="kw">impl </span>Sub <span class="kw">for </span>Angle {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
     <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
@@ -946,12 +1176,91 @@
     }
 }
 
-<span class="kw">impl </span>Neg <span class="kw">for </span>Rotation {
+<span class="kw">impl </span>SubAssign <span class="kw">for </span>Angle {
+    <span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="self">Self</span>) {
+        <span class="self">self</span>.radians = (<span class="kw-2">*</span><span class="self">self </span>- rhs).radians;
+    }
+}
+
+<span class="kw">impl </span>Neg <span class="kw">for </span>Angle {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
     <span class="kw">fn </span>neg(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Output {
         <span class="self">Self</span>::radians(-<span class="self">self</span>.radians)
     }
+}
+
+<span class="doccomment">/// A 2D Euclidean vector.
+</span><span class="attr">#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
+</span><span class="kw">pub struct </span>Vector {
+    <span class="doccomment">/// The length of the vector.
+    </span><span class="kw">pub </span>magnitude: f32,
+    <span class="doccomment">/// The direction the vector is heading.
+    </span><span class="kw">pub </span>direction: Angle,
+}
+
+<span class="kw">impl </span>Vector {
+    <span class="doccomment">/// Returns a new vector for the given magnitude and direction.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>new(magnitude: f32, direction: Angle) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            magnitude,
+            direction,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;Vector&gt; <span class="kw">for </span>Coordinate {
+    <span class="kw">fn </span>from(vec: Vector) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            x: vec.magnitude * vec.direction.cos(),
+            y: vec.magnitude * vec.direction.sin(),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;Coordinate&gt; <span class="kw">for </span>Vector {
+    <span class="kw">fn </span>from(pt: Coordinate) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            direction: pt.as_rotation(),
+            magnitude: pt.magnitude(),
+        }
+    }
+}
+
+<span class="kw">impl </span>Add&lt;Vector&gt; <span class="kw">for </span>Coordinate {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>add(<span class="self">self</span>, rhs: Vector) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">self </span>+ Coordinate::from(rhs)
+    }
+}
+
+<span class="kw">impl </span>Sub&lt;Vector&gt; <span class="kw">for </span>Coordinate {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: Vector) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">self </span>- Coordinate::from(rhs)
+    }
+}
+
+<span class="kw">impl </span>Add&lt;Angle&gt; <span class="kw">for </span>Vector {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>add(<span class="kw-2">mut </span><span class="self">self</span>, rhs: Angle) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">self</span>.direction += rhs;
+        <span class="self">self
+    </span>}
+}
+
+<span class="kw">impl </span>Sub&lt;Angle&gt; <span class="kw">for </span>Vector {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>sub(<span class="kw-2">mut </span><span class="self">self</span>, rhs: Angle) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">self</span>.direction -= rhs;
+        <span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// A representation of a bone structure inside of a [`Skeleton`].
@@ -985,6 +1294,19 @@
         LabeledBoneKind {
             kind: <span class="self">self</span>,
             label: label.into(),
+        }
+    }
+
+    <span class="doccomment">/// Returns the full length of this bone.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>full_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            BoneKind::Rigid { length } =&gt; <span class="kw-2">*</span>length,
+            BoneKind::Jointed {
+                start_length,
+                end_length,
+                ..
+            } =&gt; <span class="kw-2">*</span>start_length + <span class="kw-2">*</span>end_length,
         }
     }
 }
@@ -1027,10 +1349,10 @@
 }
 
 <span class="doccomment">/// A collection of [`Bone`]s. connected by [`Joint`]s.
-</span><span class="attr">#[derive(Default, Debug)]
+</span><span class="attr">#[derive(Default, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Skeleton {
-    initial_joint: <span class="prelude-ty">Option</span>&lt;JointId&gt;,
     bones: Vec&lt;Bone&gt;,
+    rotation: Angle,
     joints: Vec&lt;Joint&gt;,
     connections: HashMap&lt;BoneAxis, Vec&lt;JointId&gt;&gt;,
     generation: usize,
@@ -1047,12 +1369,8 @@
     /// [`Joint`]s.
     </span><span class="kw">pub fn </span>push_bone(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bone: <span class="kw">impl </span>Into&lt;LabeledBoneKind&gt;) -&gt; BoneId {
         <span class="kw">let </span>bone = bone.into();
-        <span class="kw">let </span>id = BoneId(u8::try_from(<span class="self">self</span>.bones.len()).expect(<span class="string">"too many bones"</span>));
-        <span class="kw">if </span>id == BoneId(<span class="number">0</span>) {
-            <span class="kw">let </span>joint = <span class="self">self</span>.push_joint(Joint::new(Rotation::default(), id.axis_a(), id.axis_a()));
-            <span class="self">self</span>.initial_joint = <span class="prelude-val">Some</span>(joint);
-            <span class="self">self</span>.connections.insert(id.axis_a(), <span class="macro">vec!</span>[joint]);
-        }
+        <span class="kw">let </span>id = BoneId(u16::try_from(<span class="self">self</span>.bones.len()).expect(<span class="string">"too many bones"</span>));
+
         <span class="kw">let </span>label = <span class="kw">if </span>bone.label.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
@@ -1061,21 +1379,42 @@
             <span class="prelude-val">Some</span>(label)
         };
         <span class="self">self</span>.bones.push(Bone {
+            id,
             generation: <span class="self">self</span>.generation,
             label,
             kind: bone.kind,
-            start: Vector::default(),
+            start: Coordinate::default(),
             joint_pos: <span class="prelude-val">None</span>,
-            end: Vector::default(),
+            end: Coordinate::default(),
             desired_end: <span class="prelude-val">None</span>,
+            entry_angle: Angle::default(),
         });
         id
     }
 
+    <span class="doccomment">/// Returns the list of bones in this skeleton.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>bones(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Bone] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.bones
+    }
+
+    <span class="doccomment">/// Returns the list of joints in this skeleton.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>joints(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Joint] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.joints
+    }
+
+    <span class="doccomment">/// Returns a list of joints connected to a specific bone axis.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>connections_to(<span class="kw-2">&amp;</span><span class="self">self</span>, axis: BoneAxis) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[JointId]&gt; {
+        <span class="self">self</span>.connections.get(<span class="kw-2">&amp;</span>axis).map(Vec::as_slice)
+    }
+
     <span class="doccomment">/// Creates a new [`Joint`] in the skeleton, connecting two bones together
     /// by their [axis](BoneAxis). Returns the unique id of the created joint.
-    </span><span class="kw">pub fn </span>push_joint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, joint: Joint) -&gt; JointId {
-        <span class="kw">let </span>id = JointId(u8::try_from(<span class="self">self</span>.joints.len()).expect(<span class="string">"too many joints"</span>));
+    </span><span class="kw">pub fn </span>push_joint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>joint: Joint) -&gt; JointId {
+        <span class="kw">let </span>id = JointId(u16::try_from(<span class="self">self</span>.joints.len()).expect(<span class="string">"too many joints"</span>));
+        joint.id = id;
         <span class="kw">let </span>bone_a = joint.bone_a;
         <span class="kw">let </span>bone_b = joint.bone_b;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = joint.label.clone() {
@@ -1102,29 +1441,26 @@
     }
 
     <span class="doccomment">/// Sets a translation to be applied to the entire skeleton.
-    </span><span class="kw">pub fn </span>set_translation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, translation: Vector) {
+    </span><span class="kw">pub fn </span>set_translation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, translation: Coordinate) {
         <span class="kw">let </span>bone = <span class="self">self</span>.bones.first_mut().expect(<span class="string">"root bone must be defined"</span>);
         bone.start = translation;
     }
 
     <span class="doccomment">/// Returns the translation applied to the entire skeleton.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>translation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vector {
+    </span><span class="kw">pub fn </span>translation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Coordinate {
         <span class="self">self</span>.bones.first().expect(<span class="string">"root bone must be defined"</span>).start
     }
 
     <span class="doccomment">/// Sets a base rotation to apply to the entire skeleton.
-    </span><span class="kw">pub fn </span>set_rotation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rotation: Rotation) {
-        <span class="kw">let </span>joint = <span class="self">self</span>.initial_joint.expect(<span class="string">"root bone must be defined"</span>);
-        <span class="kw">let </span>joint = <span class="kw-2">&amp;mut </span><span class="self">self</span>[joint];
-        joint.angle = rotation;
+    </span><span class="kw">pub fn </span>set_rotation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rotation: Angle) {
+        <span class="self">self</span>.rotation = rotation;
     }
 
     <span class="doccomment">/// Returns the base rotation being applied to the entire skeleton.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>rotation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rotation {
-        <span class="kw">let </span>joint = <span class="self">self</span>.initial_joint.expect(<span class="string">"root bone must be defined"</span>);
-        <span class="self">self</span>[joint].angle
+    </span><span class="kw">pub const fn </span>rotation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Angle {
+        <span class="self">self</span>.rotation
     }
 
     <span class="doccomment">/// Updates the solved positions of all bones in this skeleton that are
@@ -1132,14 +1468,34 @@
     </span><span class="kw">pub fn </span>solve(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.bones.is_empty() {
             <span class="self">self</span>.generation = <span class="self">self</span>.generation.wrapping_add(<span class="number">1</span>);
-            <span class="self">self</span>.solve_axis(BoneId(<span class="number">0</span>).axis_a());
+            <span class="self">self</span>.solve_axis();
         }
     }
 
-    <span class="kw">fn </span>solve_axis(<span class="kw-2">&amp;mut </span><span class="self">self</span>, axis: BoneAxis) {
+    <span class="kw">fn </span>solve_axis(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>axis_solved = HashSet::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>to_solve = <span class="macro">vec!</span>[(axis, <span class="prelude-val">None</span>, Rotation::default(), <span class="bool-val">false</span>)];
-        <span class="kw">while let </span><span class="prelude-val">Some</span>((axis, current_position, current_rotation, inverse_root)) = to_solve.pop() {
+        <span class="kw">let </span>root_bone = <span class="kw-2">&amp;mut </span><span class="self">self</span>.bones[<span class="number">0</span>];
+        <span class="kw">let </span>(end, mid) = determine_end_position(
+            root_bone.start,
+            root_bone.desired_end,
+            <span class="self">self</span>.rotation,
+            Angle::radians(<span class="number">0.</span>),
+            <span class="kw-2">&amp;</span>root_bone.kind,
+        );
+        root_bone.entry_angle = <span class="self">self</span>.rotation;
+        root_bone.end = end;
+        root_bone.joint_pos = mid;
+        <span class="kw">let </span>angle = root_bone.final_vector().direction;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>to_solve = <span class="macro">vec!</span>[
+            (
+                root_bone.id.axis_a(),
+                root_bone.start,
+                angle + Angle::radians(PI),
+            ),
+            (root_bone.id.axis_b(), root_bone.end, angle),
+        ];
+        <span class="kw">while let </span><span class="prelude-val">Some</span>((axis, current_position, current_rotation)) = to_solve.pop() {
             <span class="kw">if </span>!axis_solved.insert(axis) {
                 <span class="kw">continue</span>;
             }
@@ -1149,120 +1505,83 @@
             };
 
             <span class="macro">println!</span>(
-                <span class="string">"Solving {}:{:?} at {current_position:?} - {current_rotation} - {inverse_root}"</span>,
-                <span class="self">self</span>.bones[usize::from(axis.bone.<span class="number">0</span>)].label(),
-                axis.end
+                <span class="string">"Solving {axis:?} - {}"</span>,
+                <span class="self">self</span>.bones[axis.bone.index()]
+                    .label
+                    .as_ref()
+                    .map_or(<span class="string">""</span>, |s| s)
             );
-
             <span class="kw">for </span>joint_id <span class="kw">in </span>connections {
-                <span class="kw">let </span>joint = <span class="kw-2">&amp;mut </span><span class="self">self</span>.joints[usize::from(joint_id.<span class="number">0</span>)];
+                <span class="kw">let </span>joint = <span class="kw-2">&amp;mut </span><span class="self">self</span>.joints[joint_id.index()];
                 <span class="kw">let </span>other_axis = joint.other_axis(axis);
-                <span class="kw">let </span>bone = <span class="kw-2">&amp;mut </span><span class="self">self</span>.bones[usize::from(other_axis.bone.<span class="number">0</span>)];
+                <span class="kw">let </span>bone = <span class="kw-2">&amp;mut </span><span class="self">self</span>.bones[other_axis.bone.index()];
                 <span class="kw">if </span>bone.generation == <span class="self">self</span>.generation {
                     <span class="comment">// We store connections in both directions, which means we
                     // can visit bones twice. We want to ensure we only follow
                     // each bone a single time.
                     </span><span class="kw">continue</span>;
                 }
-                bone.generation = <span class="self">self</span>.generation;
                 <span class="macro">println!</span>(
-                    <span class="string">"  -&gt; {joint_id:?} -&gt; {}:{:?} ({})"</span>,
-                    bone.label(),
-                    other_axis.end,
-                    joint.angle
+                    <span class="string">"{joint_id:?}{} -&gt; {other_axis:?}{} at {current_rotation}"</span>,
+                    joint.label.as_ref().map_or(<span class="string">""</span>, |s| s),
+                    bone.label.as_ref().map_or(<span class="string">""</span>, |s| s)
                 );
-                joint.calculated_position = <span class="kw">if let </span><span class="prelude-val">Some</span>(current_position) = current_position {
-                    bone.start = current_position;
-                    current_position
-                } <span class="kw">else </span>{
-                    <span class="macro">debug_assert_eq!</span>(axis.bone.<span class="number">0</span>, <span class="number">0</span>);
-                    bone.start
-                };
+                bone.generation = <span class="self">self</span>.generation;
+                bone.entry_angle = current_rotation;
+                bone.start = current_position;
+                joint.calculated_position = current_position;
 
-                <span class="kw">let </span>angle = <span class="kw">if </span>inverse_root {
-                    Rotation::radians(PI) - joint.angle
-                } <span class="kw">else </span>{
-                    joint.angle
-                };
-
-                <span class="kw">let </span><span class="kw-2">mut </span>next_rotation = current_rotation + angle;
                 <span class="kw">let </span>(end, mid) = determine_end_position(
-                    joint.calculated_position,
+                    current_position,
                     bone.desired_end,
-                    next_rotation,
+                    current_rotation,
+                    joint.angle,
                     <span class="kw-2">&amp;</span>bone.kind,
                 );
                 bone.end = end;
                 bone.joint_pos = mid;
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(mid) = mid {
-                    <span class="kw">let </span>final_delta = end - mid;
-                    <span class="kw">let </span>rotation = Rotation::radians(final_delta.y.atan2(final_delta.x));
-                    <span class="comment">// TODO I don't know why rotating by 90 degrees fixes
-                    // everything here. It feels like atan2 should be giving us
-                    // the correct rotation, or the correction amount should be
-                    // driven by an input angle, but a fixed correction amount
-                    // seems to be the correct answer. Without this, a joint
-                    // angle of 0 sticks out at a perpendicular angle.
-                    </span>next_rotation = rotation + Rotation::radians(PI / <span class="number">2.</span>);
-                }
 
-                <span class="kw">if </span>axis == BoneId(<span class="number">0</span>).axis_a() &amp;&amp; other_axis == axis {
-                    <span class="comment">// The first joint doesn't have any real connection, so we
-                    // must manually traverse the other side of the root bone.
-                    </span>to_solve.push((
-                        axis.bone.axis_b(),
-                        <span class="prelude-val">Some</span>(<span class="self">self</span>.bones[<span class="number">0</span>].end),
-                        current_rotation,
-                        <span class="bool-val">true</span>,
-                    ));
-                } <span class="kw">else </span>{
-                    to_solve.push((other_axis.inverse(), <span class="prelude-val">Some</span>(bone.end), next_rotation, <span class="bool-val">true</span>));
-                }
+                to_solve.push((
+                    other_axis.inverse(),
+                    bone.end,
+                    bone.final_vector().direction,
+                ));
             }
         }
     }
 }
 
-<span class="kw">fn </span>next_point(<span class="kw-2">mut </span>point: Vector, angle: Rotation, length: f32) -&gt; Vector {
-    point.x += length * angle.radians.sin();
-    point.y -= length * angle.radians.cos();
-    point
-}
-
 <span class="kw">fn </span>determine_end_position(
-    start: Vector,
+    start: Coordinate,
     desired_end: <span class="prelude-ty">Option</span>&lt;Vector&gt;,
-    angle: Rotation,
+    current_rotation: Angle,
+    joint_angle: Angle,
     bone: <span class="kw-2">&amp;</span>BoneKind,
-) -&gt; (Vector, <span class="prelude-ty">Option</span>&lt;Vector&gt;) {
+) -&gt; (Coordinate, <span class="prelude-ty">Option</span>&lt;Coordinate&gt;) {
     <span class="kw">match </span>bone {
-        BoneKind::Rigid { length } =&gt; (next_point(start, angle, <span class="kw-2">*</span>length), <span class="prelude-val">None</span>),
+        BoneKind::Rigid { length } =&gt; (
+            start + Vector::new(<span class="kw-2">*</span>length, current_rotation + joint_angle),
+            <span class="prelude-val">None</span>,
+        ),
         BoneKind::Jointed {
             start_length,
             end_length,
             inverse,
         } =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(desired_end) = desired_end {
-                <span class="kw">let </span>delta = desired_end - start;
-                <span class="kw">let </span>desired_angle = Rotation::radians(delta.y.atan2(delta.x) + PI / <span class="number">2.</span>);
-                <span class="kw">let </span>distance = delta.magnitude();
+                <span class="kw">let </span>desired_angle = desired_end.direction + current_rotation;
+                <span class="kw">let </span>distance = desired_end.magnitude;
                 <span class="kw">let </span>full_length = start_length + end_length;
                 <span class="kw">let </span>minimum_size = (start_length - end_length).abs();
-                <span class="kw">let </span>(capped, desired_length) = <span class="kw">if </span>distance &lt; minimum_size {
-                    (<span class="bool-val">true</span>, minimum_size)
+                <span class="kw">let </span>desired_length = <span class="kw">if </span>distance &lt; minimum_size {
+                    minimum_size
                 } <span class="kw">else if </span>distance &gt; full_length {
-                    (<span class="bool-val">true</span>, full_length)
+                    full_length
                 } <span class="kw">else </span>{
-                    (<span class="bool-val">false</span>, distance)
+                    distance
                 };
 
-                <span class="kw">let </span>end = <span class="kw">if </span>capped {
-                    <span class="comment">// We need to cap the end point along this sloped line
-                    </span>next_point(start, desired_angle, desired_length)
-                } <span class="kw">else </span>{
-                    <span class="comment">// The end position is valid
-                    </span>desired_end
-                };
+                <span class="kw">let </span>end = start + Vector::new(desired_length, desired_angle);
 
                 <span class="kw">let </span>joint = get_third_point(
                     <span class="kw-2">*</span>inverse,
@@ -1275,8 +1594,8 @@
 
                 (end, <span class="prelude-val">Some</span>(joint))
             } <span class="kw">else </span>{
-                <span class="kw">let </span>joint = next_point(start, angle, <span class="kw-2">*</span>start_length);
-                <span class="kw">let </span>end = next_point(joint, angle, <span class="kw-2">*</span>end_length);
+                <span class="kw">let </span>joint = start + Vector::new(<span class="kw-2">*</span>start_length, current_rotation);
+                <span class="kw">let </span>end = joint + Vector::new(<span class="kw-2">*</span>end_length, current_rotation);
                 (end, <span class="prelude-val">Some</span>(joint))
             }
         }
@@ -1285,22 +1604,22 @@
 
 <span class="kw">fn </span>get_third_point(
     inverse: bool,
-    start: Vector,
+    start: Coordinate,
     distance: f32,
-    hyp_angle: Rotation,
+    hyp_angle: Angle,
     first: f32,
     second: f32,
-) -&gt; Vector {
+) -&gt; Coordinate {
     <span class="kw">let </span>hyp = distance;
     <span class="kw">let </span>first_angle = ((first * first + hyp * hyp - second * second) / (<span class="number">2. </span>* first * hyp)).acos();
     <span class="kw">if </span>first_angle.is_nan() {
-        next_point(start, hyp_angle, first)
+        start + Vector::new(first, hyp_angle)
     } <span class="kw">else </span>{
         <span class="kw">let </span>first_angle = hyp_angle
-            - Rotation {
+            - Angle {
                 radians: <span class="kw">if </span>inverse { -first_angle } <span class="kw">else </span>{ first_angle },
             };
-        next_point(start, first_angle, first)
+        start + Vector::new(first, first_angle)
     }
 }
 
@@ -1308,13 +1627,13 @@
     <span class="kw">type </span>Output = Bone;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: BoneId) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.bones[usize::from(index.<span class="number">0</span>)]
+        <span class="kw-2">&amp;</span><span class="self">self</span>.bones[index.index()]
     }
 }
 
 <span class="kw">impl </span>IndexMut&lt;BoneId&gt; <span class="kw">for </span>Skeleton {
     <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: BoneId) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.bones[usize::from(index.<span class="number">0</span>)]
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.bones[index.index()]
     }
 }
 
@@ -1322,13 +1641,13 @@
     <span class="kw">type </span>Output = Joint;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: JointId) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.joints[usize::from(index.<span class="number">0</span>)]
+        <span class="kw-2">&amp;</span><span class="self">self</span>.joints[index.index()]
     }
 }
 
 <span class="kw">impl </span>IndexMut&lt;JointId&gt; <span class="kw">for </span>Skeleton {
     <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: JointId) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.joints[usize::from(index.<span class="number">0</span>)]
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.joints[index.index()]
     }
 }
 
@@ -1354,19 +1673,39 @@
 }
 
 <span class="doccomment">/// A bone in a [`Skeleton`].
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Bone {
+    id: BoneId,
     generation: usize,
     label: <span class="prelude-ty">Option</span>&lt;ArcString&gt;,
     kind: BoneKind,
-    start: Vector,
-    joint_pos: <span class="prelude-ty">Option</span>&lt;Vector&gt;,
-    end: Vector,
+    start: Coordinate,
+    joint_pos: <span class="prelude-ty">Option</span>&lt;Coordinate&gt;,
+    end: Coordinate,
     desired_end: <span class="prelude-ty">Option</span>&lt;Vector&gt;,
+    entry_angle: Angle,
 }
 
 <span class="kw">impl </span>Bone {
-    <span class="doccomment">/// Sets the location to aim the end of this bone towards.
+    <span class="doccomment">/// Returns the unique id of this bone.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BoneId {
+        <span class="self">self</span>.id
+    }
+
+    <span class="doccomment">/// Returns true if this bone is the root of the skeleton.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>is_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.id.<span class="number">0 </span>== <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Returns the kind of this bone.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BoneKind {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.kind
+    }
+
+    <span class="doccomment">/// Sets a relative position to aim the end of this bone towards.
     ///
     /// The end of the bone that is aimed is the end that is furthest from the
     /// root of the skeleton.
@@ -1382,22 +1721,35 @@
         <span class="self">self</span>.desired_end
     }
 
+    <span class="doccomment">/// Returns the angle of the previous bone segment connecting to this bone.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>entry_angle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Angle {
+        <span class="self">self</span>.entry_angle
+    }
+
     <span class="doccomment">/// Returns the solved start position of this bone.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vector {
+    </span><span class="kw">pub const fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Coordinate {
         <span class="self">self</span>.start
     }
 
     <span class="doccomment">/// Returns the solved end position of this bone.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vector {
+    </span><span class="kw">pub const fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Coordinate {
         <span class="self">self</span>.end
+    }
+
+    <span class="doccomment">/// Returns a vector representing the final segment in this bone.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>final_vector(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vector {
+        <span class="kw">let </span>start = <span class="self">self</span>.joint_pos.unwrap_or(<span class="self">self</span>.start);
+        start.vector_to(<span class="self">self</span>.end)
     }
 
     <span class="doccomment">/// If this is a [`BoneKind::Jointed`] bone, returns the solved position of
     /// the joint.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>solved_joint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vector&gt; {
+    </span><span class="kw">pub const fn </span>solved_joint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Coordinate&gt; {
         <span class="self">self</span>.joint_pos
     }
 
@@ -1409,24 +1761,32 @@
 }
 
 <span class="doccomment">/// A connection between two bones.
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Joint {
+    id: JointId,
     label: <span class="prelude-ty">Option</span>&lt;ArcString&gt;,
     bone_a: BoneAxis,
     bone_b: BoneAxis,
-    calculated_position: Vector,
-    angle: Rotation,
+    calculated_position: Coordinate,
+    angle: Angle,
 }
 
 <span class="kw">impl </span>Joint {
+    <span class="doccomment">/// Returns the unique id of this joint.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JointId {
+        <span class="self">self</span>.id
+    }
+
     <span class="doccomment">/// Returns a new joint formed by joining `bone_a` and `bone_b` at `angle`.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>new(angle: Rotation, bone_a: BoneAxis, bone_b: BoneAxis) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(angle: Angle, bone_a: BoneAxis, bone_b: BoneAxis) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            id: JointId(<span class="number">0</span>),
             label: <span class="prelude-val">None</span>,
             bone_a,
             bone_b,
-            calculated_position: Vector::new(<span class="number">0.</span>, <span class="number">0.</span>),
+            calculated_position: Coordinate::new(<span class="number">0.</span>, <span class="number">0.</span>),
             angle,
         }
     }
@@ -1468,13 +1828,13 @@
     ///
     /// This setting is ignored if the bone furthest from the root of the joint
     /// is a [`BoneKind::Jointed`] bone.
-    </span><span class="kw">pub fn </span>set_angle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, angle: Rotation) {
+    </span><span class="kw">pub fn </span>set_angle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, angle: Angle) {
         <span class="self">self</span>.angle = angle;
     }
 
     <span class="doccomment">/// Returns the rotation of this joint.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>angle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rotation {
+    </span><span class="kw">pub const fn </span>angle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Angle {
         <span class="self">self</span>.angle
     }
 }
@@ -1482,7 +1842,7 @@
 <span class="doccomment">/// The unique ID of a [`Bone`] in a [`Skeleton`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
-</span><span class="kw">pub struct </span>BoneId(u8);
+</span><span class="kw">pub struct </span>BoneId(u16);
 
 <span class="kw">impl </span>BoneId {
     <span class="doccomment">/// Returns the first axis of this bone.
@@ -1502,12 +1862,26 @@
             end: BoneEnd::B,
         }
     }
+
+    <span class="doccomment">/// Returns the index of this bone within the skeleton.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>index(<span class="self">self</span>) -&gt; usize {
+        usize::from(<span class="self">self</span>.<span class="number">0</span>)
+    }
 }
 
 <span class="doccomment">/// The unique ID of a [`Joint`] in a [`Skeleton`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = <span class="string">"serde"</span>, derive(::serde::Serialize, ::serde::Deserialize))]
-</span><span class="kw">pub struct </span>JointId(u8);
+</span><span class="kw">pub struct </span>JointId(u16);
+
+<span class="kw">impl </span>JointId {
+    <span class="doccomment">/// Returns the index of this joint within the skeleton.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>index(<span class="self">self</span>) -&gt; usize {
+        usize::from(<span class="self">self</span>.<span class="number">0</span>)
+    }
+}
 
 <span class="doccomment">/// A specific end of a [`Bone`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -1534,14 +1908,14 @@
 #[allow(clippy::cast_possible_truncation)]
 </span><span class="kw">fn </span>rotation() {
     <span class="macro">assert_eq!</span>(
-        (Rotation::degrees(<span class="number">90.</span>) + Rotation::degrees(<span class="number">180.</span>))
+        (Angle::degrees(<span class="number">90.</span>) + Angle::degrees(<span class="number">180.</span>))
             .normalized()
             .to_degrees()
             .round() <span class="kw">as </span>i32,
         <span class="number">270</span>,
     );
     <span class="macro">assert_eq!</span>(
-        (Rotation::degrees(<span class="number">90.</span>) + Rotation::degrees(-<span class="number">180.</span>))
+        (Angle::degrees(<span class="number">90.</span>) + Angle::degrees(-<span class="number">180.</span>))
             .normalized()
             .to_degrees()
             .round() <span class="kw">as </span>i32,
