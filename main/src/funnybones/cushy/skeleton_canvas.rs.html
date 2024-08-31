@@ -363,23 +363,95 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)]
 </span><span class="kw">use </span>core::f32;
 
 <span class="kw">use crate</span>::{Angle, BoneEnd, BoneId, Coordinate, JointId, Skeleton, Vector};
 <span class="kw">use </span>cushy::{
-    context::{EventContext, GraphicsContext, LayoutContext},
+    context::{EventContext, GraphicsContext, LayoutContext, Trackable},
     figures::{
         units::{Lp, Px, UPx},
-        FloatConversion, IntoComponents, Point, Round, ScreenScale, Size,
+        FloatConversion, IntoComponents, Point, Rect, Round, ScreenScale, Size,
     },
     kludgine::{
-        app::winit::{event::MouseButton, window::CursorIcon},
+        app::winit::{
+            event::{MouseButton, MouseScrollDelta, TouchPhase},
+            window::CursorIcon,
+        },
         shapes::{PathBuilder, Shape, StrokeOptions},
         DrawableExt, Origin,
     },
     styles::Color,
-    value::{Dynamic, DynamicRead},
+    value::{Destination, Dynamic, DynamicRead, Source},
     widget::{Callback, EventHandling, Widget, HANDLED, IGNORED},
     window::DeviceId,
     ConstraintLimit,
@@ -389,9 +461,10 @@
 </span><span class="kw">pub struct </span>SkeletonCanvas {
     skeleton: Dynamic&lt;Skeleton&gt;,
     hovering: <span class="prelude-ty">Option</span>&lt;Target&gt;,
-    scale: f32,
+    scale: Dynamic&lt;f32&gt;,
     handle_size: f32,
-    maximum_scale: f32,
+    maximum_scale: Dynamic&lt;f32&gt;,
+    minimum_scale: Dynamic&lt;f32&gt;,
     offset: Point&lt;Px&gt;,
     drag: <span class="prelude-ty">Option</span>&lt;DragInfo&gt;,
     on_mutate: <span class="prelude-ty">Option</span>&lt;Callback&lt;SkeletonMutation&gt;&gt;,
@@ -400,16 +473,34 @@
 <span class="kw">impl </span>SkeletonCanvas {
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(skeleton: Dynamic&lt;Skeleton&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>maximum_scale = Dynamic::new(<span class="number">0.</span>);
+        <span class="kw">let </span>minimum_scale = maximum_scale.map_each_cloned(|s| s / <span class="number">100.</span>);
         <span class="self">Self </span>{
             skeleton,
             hovering: <span class="prelude-val">None</span>,
             handle_size: <span class="number">0.1</span>,
-            scale: f32::MAX,
-            maximum_scale: <span class="number">0.</span>,
+            scale: Dynamic::new(f32::MAX),
+            maximum_scale,
+            minimum_scale,
             offset: Point::default(),
             drag: <span class="prelude-val">None</span>,
             on_mutate: <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>maximum_scale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Dynamic&lt;f32&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.maximum_scale
+    }
+
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>minimum_scale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Dynamic&lt;f32&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.minimum_scale
+    }
+
+    <span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>scale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Dynamic&lt;f32&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.scale
     }
 
     <span class="attr">#[must_use]
@@ -421,20 +512,24 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">fn </span>vector_position(<span class="kw-2">&amp;</span><span class="self">self</span>, vector: Coordinate) -&gt; Point&lt;Px&gt; {
-        (vector * <span class="self">self</span>.scale).to_vec::&lt;Point&lt;f32&gt;&gt;().map(Px::from) + <span class="self">self</span>.offset
+    <span class="kw">fn </span>coordinate_to_point(<span class="kw-2">&amp;</span><span class="self">self</span>, vector: Coordinate) -&gt; Point&lt;Px&gt; {
+        (vector * <span class="self">self</span>.scale.get())
+            .to_vec::&lt;Point&lt;f32&gt;&gt;()
+            .map(Px::from)
+            + <span class="self">self</span>.offset
     }
 
-    <span class="kw">fn </span>position_to_vector(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Point&lt;Px&gt;) -&gt; Coordinate {
+    <span class="kw">fn </span>point_to_coordinate(<span class="kw-2">&amp;</span><span class="self">self</span>, position: Point&lt;Px&gt;) -&gt; Coordinate {
         (position - <span class="self">self</span>.offset)
             .map(FloatConversion::into_float)
             .to_vec::&lt;Coordinate&gt;()
-            / <span class="self">self</span>.scale
+            / <span class="self">self</span>.scale.get()
     }
 }
 
 <span class="kw">impl </span>Widget <span class="kw">for </span>SkeletonCanvas {
-    <span class="kw">fn </span>redraw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>GraphicsContext&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;) {
+    <span class="attr">#[allow(clippy::too_many_lines)]
+    </span><span class="kw">fn </span>redraw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>GraphicsContext&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;) {
         context.redraw_when_changed(<span class="kw-2">&amp;</span><span class="self">self</span>.skeleton);
         <span class="kw">let </span><span class="kw-2">mut </span>skeleton = <span class="self">self</span>.skeleton.lock();
         skeleton.prevent_notifications();
@@ -467,54 +562,67 @@
             <span class="kw">return</span>;
         }
 
-        <span class="self">self</span>.maximum_scale = <span class="kw">if </span>zero_height || width_ratio &lt; height_ratio {
+        <span class="kw">let </span>maximum_scale = <span class="kw">if </span>zero_height || width_ratio &lt; height_ratio {
             width_ratio
         } <span class="kw">else </span>{
             height_ratio
         };
-        <span class="kw">if </span><span class="self">self</span>.scale &gt; <span class="self">self</span>.maximum_scale {
-            <span class="self">self</span>.scale = <span class="self">self</span>.maximum_scale;
-        }
+        <span class="self">self</span>.maximum_scale.set(maximum_scale);
+        <span class="self">self</span>.scale.redraw_when_changed(context);
+        <span class="kw">let </span>scale = {
+            <span class="kw">let </span><span class="kw-2">mut </span>scale = <span class="self">self</span>.scale.lock();
+            <span class="kw">if </span><span class="kw-2">*</span>scale &gt; maximum_scale {
+                <span class="kw-2">*</span>scale = maximum_scale;
+                scale.prevent_notifications();
+            }
+            <span class="kw-2">*</span>scale
+        };
         <span class="kw">let </span>handle_size = Lp::mm(<span class="number">2</span>).into_px(context.gfx.scale()).ceil();
-        <span class="self">self</span>.handle_size = handle_size.into_float() / <span class="self">self</span>.scale;
+        <span class="self">self</span>.handle_size = handle_size.into_float() / scale;
 
-        <span class="kw">let </span>root = root_start * <span class="self">self</span>.scale;
+        <span class="kw">let </span>root = root_start * scale;
 
         <span class="self">self</span>.offset = (middle - root).to_vec::&lt;Point&lt;f32&gt;&gt;().map(Px::from).floor();
 
         <span class="kw">let </span>selected = <span class="self">self</span>.drag.as_ref().map_or(<span class="self">self</span>.hovering, |d| <span class="prelude-val">Some</span>(d.target));
 
         <span class="kw">for </span>bone <span class="kw">in </span>skeleton.bones() {
+            <span class="kw">let </span>(selected, color) = <span class="kw">match </span>selected {
+                <span class="prelude-val">Some</span>(Target::DesiredEnd(id)) <span class="kw">if </span>id == bone.id() =&gt; (<span class="bool-val">true</span>, Color::RED),
+                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_b == bone.id().axis_a() =&gt; {
+                    (<span class="bool-val">true</span>, Color::RED)
+                }
+                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_a.bone == bone.id() =&gt; {
+                    (<span class="bool-val">false</span>, Color::BLUE)
+                }
+                <span class="kw">_ </span>=&gt; (<span class="bool-val">false</span>, (Color::WHITE)),
+            };
             <span class="kw">let </span>path = <span class="kw">if let </span><span class="prelude-val">Some</span>(joint) = bone.solved_joint() {
-                <span class="kw">let </span>joint = <span class="self">self</span>.vector_position(joint);
-                context.gfx.draw_shape(
-                    Shape::filled_circle(handle_size / <span class="number">2</span>, Color::WHITE, Origin::Center)
-                        .translate_by(joint),
-                );
-                PathBuilder::new(<span class="self">self</span>.vector_position(bone.start()))
+                <span class="kw">let </span>joint = <span class="self">self</span>.coordinate_to_point(joint);
+                context
+                    .gfx
+                    .draw_shape(centered_square(handle_size / <span class="number">2</span>, color).translate_by(joint));
+                PathBuilder::new(<span class="self">self</span>.coordinate_to_point(bone.start()))
                     .line_to(joint)
-                    .line_to(<span class="self">self</span>.vector_position(bone.end()))
+                    .line_to(<span class="self">self</span>.coordinate_to_point(bone.end()))
                     .build()
             } <span class="kw">else </span>{
-                PathBuilder::new(<span class="self">self</span>.vector_position(bone.start()))
-                    .line_to(<span class="self">self</span>.vector_position(bone.end()))
+                PathBuilder::new(<span class="self">self</span>.coordinate_to_point(bone.start()))
+                    .line_to(<span class="self">self</span>.coordinate_to_point(bone.end()))
                     .build()
             };
-            <span class="kw">let </span>(selected, stroke) = <span class="kw">match </span>selected {
-                <span class="prelude-val">Some</span>(Target::DesiredEnd(id)) <span class="kw">if </span>id == bone.id() =&gt; (
-                    <span class="bool-val">true</span>,
-                    StrokeOptions::px_wide(handle_size / <span class="number">2</span>).colored(Color::RED),
-                ),
-                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_b == bone.id().axis_a() =&gt; (
-                    <span class="bool-val">true</span>,
-                    StrokeOptions::px_wide(handle_size / <span class="number">2</span>).colored(Color::RED),
-                ),
-                <span class="prelude-val">Some</span>(Target::Joint(joint)) <span class="kw">if </span>skeleton[joint].bone_a.bone == bone.id() =&gt; (
-                    <span class="bool-val">false</span>,
-                    StrokeOptions::px_wide(handle_size / <span class="number">2</span>).colored(Color::BLUE),
-                ),
-                <span class="kw">_ </span>=&gt; (<span class="bool-val">false</span>, StrokeOptions::px_wide(<span class="number">1</span>).colored(Color::WHITE)),
-            };
+            <span class="kw">if </span>bone.is_root() {
+                context.gfx.draw_shape(
+                    centered_square(handle_size / <span class="number">2</span>, color)
+                        .translate_by(<span class="self">self</span>.coordinate_to_point(bone.start())),
+                );
+            }
+            context.gfx.draw_shape(
+                centered_square(handle_size / <span class="number">2</span>, color)
+                    .translate_by(<span class="self">self</span>.coordinate_to_point(bone.end())),
+            );
+            <span class="kw">let </span>width = <span class="number">1 </span>+ i32::from(selected);
+            <span class="kw">let </span>stroke = StrokeOptions::px_wide(width).colored(color);
             context.gfx.draw_shape(<span class="kw-2">&amp;</span>path.stroke(stroke));
 
             <span class="kw">if </span>selected {
@@ -525,7 +633,7 @@
                 } <span class="kw">else </span>{
                     bone.end()
                 };
-                <span class="kw">let </span>end = <span class="self">self</span>.vector_position(end);
+                <span class="kw">let </span>end = <span class="self">self</span>.coordinate_to_point(end);
 
                 context.gfx.draw_shape(
                     Shape::filled_circle(handle_size, stroke.color, Origin::Center)
@@ -544,7 +652,7 @@
     }
 
     <span class="kw">fn </span>hover(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: Point&lt;Px&gt;, context: <span class="kw-2">&amp;mut </span>EventContext&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;CursorIcon&gt; {
-        <span class="kw">let </span>location = <span class="self">self</span>.position_to_vector(location);
+        <span class="kw">let </span>location = <span class="self">self</span>.point_to_coordinate(location);
         <span class="kw">let </span>skeleton = <span class="self">self</span>.skeleton.read();
         <span class="kw">let </span><span class="kw-2">mut </span>closest_match = <span class="self">self</span>.handle_size;
         <span class="kw">let </span>current_hover = <span class="self">self</span>.hovering.take();
@@ -612,7 +720,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = <span class="self">self</span>.hovering {
             <span class="self">self</span>.drag = <span class="prelude-val">Some</span>(DragInfo {
                 target,
-                last: <span class="self">self</span>.position_to_vector(location),
+                last: <span class="self">self</span>.point_to_coordinate(location),
             });
             HANDLED
         } <span class="kw">else </span>{
@@ -627,7 +735,7 @@
         _button: MouseButton,
         _context: <span class="kw-2">&amp;mut </span>EventContext&lt;<span class="lifetime">'_</span>&gt;,
     ) {
-        <span class="kw">let </span>location = <span class="self">self</span>.position_to_vector(location);
+        <span class="kw">let </span>location = <span class="self">self</span>.point_to_coordinate(location);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(drag) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.drag {
             <span class="kw">let </span>delta = location - drag.last;
             <span class="kw">if </span>delta.magnitude() &gt; f32::EPSILON {
@@ -687,9 +795,39 @@
         <span class="self">self</span>.drag = <span class="prelude-val">None</span>;
     }
 
+    <span class="attr">#[allow(clippy::cast_possible_truncation)]
+    </span><span class="kw">fn </span>mouse_wheel(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _device_id: DeviceId,
+        delta: MouseScrollDelta,
+        _phase: TouchPhase,
+        _context: <span class="kw-2">&amp;mut </span>EventContext&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; EventHandling {
+        <span class="kw">let </span>maximum_scale = <span class="self">self</span>.maximum_scale.get();
+        <span class="kw">let </span>minimum_scale = <span class="self">self</span>.minimum_scale.get();
+        <span class="kw">let </span><span class="kw-2">mut </span>scale = <span class="self">self</span>.scale.lock();
+        <span class="kw">let </span>delta = <span class="kw">match </span>delta {
+            MouseScrollDelta::LineDelta(<span class="kw">_</span>, y_lines) =&gt; y_lines,
+            MouseScrollDelta::PixelDelta(pt) =&gt; pt.y <span class="kw">as </span>f32 / <span class="number">12.</span>,
+        };
+
+        <span class="kw-2">*</span>scale = (<span class="kw-2">*</span>scale + <span class="kw-2">*</span>scale * delta / <span class="number">10.</span>)
+            .min(maximum_scale)
+            .max(minimum_scale);
+
+        HANDLED
+    }
+
     <span class="kw">fn </span>hit_test(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _location: Point&lt;Px&gt;, _context: <span class="kw-2">&amp;mut </span>EventContext&lt;<span class="lifetime">'_</span>&gt;) -&gt; bool {
         <span class="bool-val">true
     </span>}
+}
+
+<span class="kw">fn </span>centered_square(size: Px, color: Color) -&gt; Shape&lt;Px, <span class="bool-val">false</span>&gt; {
+    Shape::filled_rect(
+        Rect::new(Point::squared(-size / <span class="number">2</span>), Size::squared(size)),
+        color,
+    )
 }
 
 <span class="kw">fn </span>distance_to_line(test: Coordinate, p1: Coordinate, p2: Coordinate) -&gt; f32 {

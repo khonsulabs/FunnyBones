@@ -421,6 +421,7 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
 
 </span><span class="kw">use </span>std::ops::ControlFlow;
@@ -511,6 +512,24 @@
     <span class="kw">let </span>bones_editor = skeleton_editor(<span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>watcher).make_widget();
 
     <span class="kw">let </span>mode = Dynamic::&lt;Mode&gt;::default();
+    <span class="kw">let </span>canvas = SkeletonCanvas::new(skeleton).on_mutate({
+        <span class="kw">move </span>|mutation| <span class="kw">match </span>mutation {
+            SkeletonMutation::SetDesiredEnd { bone, end } =&gt; editing_skeleton
+                .find_bone(bone)
+                .expect(<span class="string">"missing bone"</span>)
+                .desired_end
+                .set(<span class="prelude-val">Some</span>(end)),
+            SkeletonMutation::SetJointRotation { joint, rotation } =&gt; editing_skeleton
+                .find_joint(joint)
+                .expect(<span class="string">"missing joint"</span>)
+                .joint_angle
+                .set(rotation),
+        }
+    });
+    <span class="kw">let </span>zoom = canvas
+        .scale()
+        .clone()
+        .slider_between(canvas.minimum_scale(), canvas.maximum_scale());
 
     [(Mode::Bones, <span class="string">"Bones"</span>), (Mode::Animation, <span class="string">"Animation"</span>)]
         .into_iter()
@@ -527,24 +546,7 @@
         )
         .into_rows()
         .expand()
-        .and(
-            SkeletonCanvas::new(skeleton)
-                .on_mutate({
-                    <span class="kw">move </span>|mutation| <span class="kw">match </span>mutation {
-                        SkeletonMutation::SetDesiredEnd { bone, end } =&gt; editing_skeleton
-                            .find_bone(bone)
-                            .expect(<span class="string">"missing bone"</span>)
-                            .desired_end
-                            .set(<span class="prelude-val">Some</span>(end)),
-                        SkeletonMutation::SetJointRotation { joint, rotation } =&gt; editing_skeleton
-                            .find_joint(joint)
-                            .expect(<span class="string">"missing joint"</span>)
-                            .joint_angle
-                            .set(rotation),
-                    }
-                })
-                .expand(),
-        )
+        .and(canvas.expand().and(zoom).into_rows().expand())
         .into_columns()
         .run()
 }
