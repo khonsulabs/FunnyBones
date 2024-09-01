@@ -3,7 +3,8 @@
 use std::ops::ControlFlow;
 
 use cushy::{
-    value::{Destination, Dynamic, DynamicRead, ForEach, Source, Switchable},
+    animation::ZeroToOne,
+    value::{Destination, Dynamic, DynamicRead, Source, Switchable},
     widget::{MakeWidget, WidgetList},
     widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
     Run,
@@ -49,7 +50,6 @@ impl ChangeAggregator {
     }
 }
 
-// TODO we want joint labels here somehow
 fn add_bones_to_skeleton(
     connected_to: BoneAxis,
     bones: &Dynamic<Vec<SkeletalBone>>,
@@ -57,10 +57,9 @@ fn add_bones_to_skeleton(
 ) {
     let bones = bones.read();
     for bone in &*bones {
-        let new_bone = skeleton.push_bone(bone.as_bone_kind());
-        if let Some(desired_end) = bone.desired_end.get() {
-            skeleton[new_bone].set_desired_end(Some(desired_end));
-        }
+        let (kind, vector) = bone.as_bone_kind();
+        let new_bone = skeleton.push_bone(kind);
+        skeleton[new_bone].set_desired_end(Some(vector));
         skeleton.push_joint(
             Joint::new(bone.joint_angle.get(), connected_to, new_bone.axis_a())
                 .with_label(bone.joint_label.get()),
@@ -75,7 +74,8 @@ fn main() -> cushy::Result {
         let editing_skeleton = editing_skeleton.clone();
         move || {
             let mut skeleton = Skeleton::default();
-            let root = skeleton.push_bone(editing_skeleton.root.as_bone_kind());
+            let (kind, _vector) = editing_skeleton.root.as_bone_kind();
+            let root = skeleton.push_bone(kind);
             add_bones_to_skeleton(
                 root.axis_b(),
                 &editing_skeleton.root.connected_bones,
@@ -90,11 +90,11 @@ fn main() -> cushy::Result {
     let mode = Dynamic::<Mode>::default();
     let canvas = SkeletonCanvas::new(skeleton).on_mutate({
         move |mutation| match mutation {
-            SkeletonMutation::SetDesiredEnd { bone, end } => editing_skeleton
-                .find_bone(bone)
-                .expect("missing bone")
-                .desired_end
-                .set(Some(end)),
+            SkeletonMutation::SetDesiredEnd { bone, end } => {
+                let bone = editing_skeleton.find_bone(bone).expect("missing bone");
+                bone.desired_length.set(end.magnitude);
+                bone.joint_angle.set(end.direction);
+            }
             SkeletonMutation::SetJointRotation { joint, rotation } => editing_skeleton
                 .find_joint(joint)
                 .expect("missing joint")
@@ -202,25 +202,41 @@ struct SkeletalBone {
     joint_label: Dynamic<String>,
     joint_angle: Dynamic<Angle>,
     length: Dynamic<f32>,
-    jointed: Dynamic<Option<f32>>,
+    jointed: Dynamic<bool>,
+    joint_ratio: Dynamic<ZeroToOne>,
     inverse: Dynamic<bool>,
-    desired_end: Dynamic<Option<Vector>>,
+    desired_length: Dynamic<f32>,
     connected_bones: Dynamic<Vec<SkeletalBone>>,
 }
 
 impl SkeletalBone {
-    pub fn as_bone_kind(&self) -> LabeledBoneKind {
-        match self.jointed.get() {
-            Some(joint) => BoneKind::Jointed {
-                start_length: self.length.get(),
-                end_length: joint,
-                inverse: self.inverse.get(),
-            },
-            None => BoneKind::Rigid {
-                length: self.length.get(),
-            },
-        }
-        .with_label(self.label.get())
+    pub fn as_bone_kind(&self) -> (LabeledBoneKind, Vector) {
+        let length = self.length.get();
+        let (vector_length, kind) = if self.jointed.get() {
+            let joint_ratio = self.joint_ratio.get();
+            let start_length = length * *joint_ratio;
+            let end_length = length - start_length;
+            (
+                self.desired_length.get(),
+                BoneKind::Jointed {
+                    start_length,
+                    end_length,
+                    inverse: self.inverse.get(),
+                },
+            )
+        } else {
+            (
+                length,
+                BoneKind::Rigid {
+                    length: self.length.get(),
+                },
+            )
+        };
+
+        (
+            kind.with_label(self.label.get()),
+            Vector::new(vector_length, self.joint_angle.get()),
+        )
     }
 }
 
@@ -232,8 +248,9 @@ impl Default for SkeletalBone {
             label: Dynamic::default(),
             length: Dynamic::new(1.),
             jointed: Dynamic::default(),
+            joint_ratio: Dynamic::new(ZeroToOne::new(0.5)),
             inverse: Dynamic::default(),
-            desired_end: Dynamic::default(),
+            desired_length: Dynamic::default(),
             connected_bones: Dynamic::default(),
         }
     }
@@ -304,13 +321,24 @@ fn bone_property_editor(
     watcher.watch(&bone.label);
     watcher.watch(&bone.length);
     watcher.watch(&bone.joint_angle);
-    watcher.watch(&bone.desired_end);
-    let (second, jointed) = if let Some(length) = bone.jointed.get() {
-        (length, true)
-    } else {
-        (1., false)
-    };
-    let jointed = Dynamic::new(jointed);
+    watcher.watch(&bone.joint_ratio);
+    watcher.watch(&bone.desired_length);
+
+    bone.jointed
+        .for_each_cloned({
+            let mut was_jointed = bone.jointed.get();
+            let desired_length = bone.desired_length.clone();
+            let length = bone.length.clone();
+            move |jointed| {
+                if jointed && !was_jointed {
+                    // When enabling jointed, we want to initialize the desired
+                    // length to the current length.
+                    desired_length.set(length.get());
+                }
+                was_jointed = jointed;
+            }
+        })
+        .persist();
 
     let first = Dynamic::new(bone.length.get().to_string());
     let first_parsed = first.map_each(|s| s.parse::<f32>());
@@ -318,18 +346,6 @@ fn bone_property_editor(
         .for_each(move |result| {
             let Ok(new_value) = result else { return };
             bone.length.set(*new_value);
-        })
-        .persist();
-    let second = Dynamic::new(second.to_string());
-    let second_parsed = second.map_each(|s| s.parse::<f32>());
-    (&jointed, &second_parsed)
-        .for_each(move |(jointed, result)| {
-            if *jointed {
-                let Ok(new_value) = result else { return };
-                bone.jointed.set(Some(*new_value));
-            } else {
-                bone.jointed.set(None);
-            }
         })
         .persist();
 
@@ -340,18 +356,13 @@ fn bone_property_editor(
         .placeholder("Length")
         .validation(first_parsed);
 
-    let jointed_editor = jointed.clone().into_checkbox("Jointed");
+    let jointed_editor = bone.jointed.clone().into_checkbox("Jointed");
 
     let rotation = bone.joint_angle.slider();
 
     let joint_row = "Second Bone Segment Length"
         .align_left()
-        .and(
-            second
-                .into_input()
-                .with_enabled(jointed.clone())
-                .validation(second_parsed),
-        )
+        .and(bone.joint_ratio.slider().with_enabled(bone.jointed.clone()))
         .into_rows()
         .fit_horizontally()
         .align_top()
@@ -359,7 +370,7 @@ fn bone_property_editor(
         .and(
             bone.inverse
                 .into_checkbox("Inverse")
-                .with_enabled(jointed.clone())
+                .with_enabled(bone.jointed.clone())
                 .fit_horizontally(),
         )
         .and(Space::clear().expand_weighted(2))
@@ -377,10 +388,10 @@ fn bone_property_editor(
 
     let second_row = if is_root {
         joint_row
-            .collapse_vertically(jointed.map_each_cloned(|j| !j))
+            .collapse_vertically(bone.jointed.map_each_cloned(|j| !j))
             .make_widget()
     } else {
-        jointed
+        bone.jointed
             .clone()
             .switcher(move |jointed, _| {
                 if *jointed {

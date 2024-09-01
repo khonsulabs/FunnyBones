@@ -217,7 +217,6 @@ pub enum Target {
 impl Target {
     #[must_use]
     pub fn get(&self, skeleton: &Skeleton) -> Value {
-        // TODO this shouldn't be able to panic
         match self {
             Target::Bone { bone, property } => skeleton.bone(*bone).map(|bone| property.get(bone)),
             Target::Joint { joint, property } => {
