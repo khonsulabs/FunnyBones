@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ChangeKind"],"struct":["Animation","Change","Frame","RunningAnimation"]};
+window.SIDEBAR_ITEMS = {"enum":["BoneProperty","JointProperty","PropertyUpdate","Target","Value"],"struct":["Animation","Frame","Keyframe","RunningAnimation","Timeline"]};
