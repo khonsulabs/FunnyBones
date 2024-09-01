@@ -1,15 +1,17 @@
 #![allow(missing_docs)]
 use std::{
     borrow::Cow,
+    cmp::Ordering,
     collections::HashMap,
-    ops::{Deref, DerefMut},
+    num::TryFromIntError,
+    ops::{Add, Deref, DerefMut, Sub},
     sync::Arc,
     time::Duration,
 };
 
-use easing_function::{easings::StandardEasing, Easing};
+use easing_function::easings::StandardEasing;
 
-use crate::{Angle, BoneId, Coordinate, JointId, Skeleton, Vector};
+use crate::{Angle, Bone, BoneId, Coordinate, Joint, JointId, Skeleton, Vector};
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Animation(Arc<AnimationData>);
@@ -19,22 +21,22 @@ impl Animation {
         Arc::make_mut(&mut self.0)
     }
 
-    pub fn push(&mut self, frame: Frame) {
-        self.data_mut().frames.push(frame);
+    pub fn push(&mut self, timeline: Timeline) {
+        self.data_mut().timelines.push(timeline);
     }
 
     #[must_use]
-    pub fn with(mut self, frame: Frame) -> Self {
-        self.push(frame);
+    pub fn with(mut self, timeline: Timeline) -> Self {
+        self.push(timeline);
         self
     }
 
-    pub fn remove(&mut self, frame_index: usize) -> Frame {
-        self.data_mut().frames.remove(frame_index)
+    pub fn remove(&mut self, timeline_index: usize) -> Timeline {
+        self.data_mut().timelines.remove(timeline_index)
     }
 
-    pub fn insert(&mut self, index: usize, frame: Frame) {
-        self.data_mut().frames.insert(index, frame);
+    pub fn insert(&mut self, index: usize, timeline: Timeline) {
+        self.data_mut().timelines.insert(index, timeline);
     }
 
     #[must_use]
@@ -67,25 +69,24 @@ impl Animation {
     pub fn start(&self) -> RunningAnimation {
         RunningAnimation {
             animation: self.clone(),
-            frame_elapsed: Duration::ZERO,
-            frame: 0,
             repeat: false,
-            frame_props: Vec::new(),
+            elapsed: Duration::ZERO,
+            timelines: Vec::new(),
         }
     }
 }
 
 impl Deref for Animation {
-    type Target = [Frame];
+    type Target = [Timeline];
 
     fn deref(&self) -> &Self::Target {
-        &self.0.frames
+        &self.0.timelines
     }
 }
 
 impl DerefMut for Animation {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.data_mut().frames
+        &mut self.data_mut().timelines
     }
 }
 
@@ -94,100 +95,298 @@ impl DerefMut for Animation {
 #[cfg_attr(feature = "serde", serde(rename = "Animation"))]
 struct AnimationData {
     variables: HashMap<String, f32>,
-    frames: Vec<Frame>,
+    timelines: Vec<Timeline>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Frame {
-    duration: Duration,
-    changes: Vec<Change>,
+pub struct Timeline {
+    target: Target,
+    frames: Vec<Keyframe>,
 }
 
-impl Frame {
+impl Timeline {
     #[must_use]
-    pub const fn new(duration: Duration) -> Self {
+    pub fn new(target: Target) -> Self {
         Self {
-            duration,
-            changes: Vec::new(),
+            target,
+            frames: Vec::new(),
         }
     }
 
-    pub fn set_duration(&mut self, duration: Duration) {
-        self.duration = duration;
-    }
-
     #[must_use]
-    pub const fn duration(&self) -> Duration {
-        self.duration
-    }
-
-    #[must_use]
-    pub fn with_change(mut self, change: impl Into<Change>) -> Self {
-        self.push_change(change.into());
+    pub fn with_frame(mut self, frame: Keyframe) -> Self {
+        self.insert_frame(frame);
         self
     }
 
-    pub fn push_change(&mut self, change: impl Into<Change>) {
-        self.changes.push(change.into());
+    pub fn insert_frame(&mut self, frame: Keyframe) {
+        match self
+            .frames
+            .binary_search_by_key(&frame.frame_offset, |f| f.frame_offset)
+        {
+            Ok(existing_index) => {
+                self.frames[existing_index] = frame;
+            }
+            Err(insert_at) => {
+                self.frames.insert(insert_at, frame);
+            }
+        }
+    }
+
+    pub fn set_frame_offset(&mut self, index: usize, new_offset: Frame) {
+        let current_offset = self.frames[index].frame_offset;
+        let (slice_offset, slice) = match current_offset.cmp(&new_offset) {
+            Ordering::Less => (0, &self.frames[0..index]),
+            Ordering::Equal => return,
+            Ordering::Greater => (index + 1, &self.frames[index + 1..]),
+        };
+
+        match slice.binary_search_by_key(&new_offset, |f| f.frame_offset) {
+            Ok(relative_index) => {
+                let new_index = relative_index + slice_offset;
+                self.frames[new_index].easing = self.frames[index].easing;
+                self.frames[new_index].update = self.frames[index].update;
+                self.frames.remove(index);
+            }
+            Err(relative_index) => {
+                let mut new_index = relative_index + slice_offset;
+                let mut removed = self.frames.remove(index);
+                removed.frame_offset = new_offset;
+                if slice_offset > 0 {
+                    new_index -= 1;
+                }
+                self.frames.insert(new_index, removed);
+            }
+        }
     }
 }
 
-impl Deref for Frame {
-    type Target = [Change];
+impl Deref for Timeline {
+    type Target = [Keyframe];
 
     fn deref(&self) -> &Self::Target {
-        &self.changes
+        &self.frames
     }
 }
 
-impl DerefMut for Frame {
+impl DerefMut for Timeline {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.changes
+        &mut self.frames
     }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Change {
-    kind: ChangeKind,
-    easing: StandardEasing,
+pub struct Keyframe {
+    frame_offset: Frame,
+    pub update: PropertyUpdate,
+    pub easing: StandardEasing,
 }
 
-impl From<ChangeKind> for Change {
-    fn from(kind: ChangeKind) -> Self {
+impl Keyframe {
+    #[must_use]
+    pub fn new(frame_offset: Frame, update: PropertyUpdate) -> Self {
         Self {
-            kind,
-            easing: StandardEasing::Linear,
+            frame_offset,
+            update,
+            easing: StandardEasing::default(),
+        }
+    }
+
+    #[must_use]
+    pub fn with_easing(mut self, easing: StandardEasing) -> Self {
+        self.easing = easing;
+        self
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum Target {
+    Bone {
+        bone: BoneId,
+        property: BoneProperty,
+    },
+    Joint {
+        joint: JointId,
+        property: JointProperty,
+    },
+}
+
+impl Target {
+    #[must_use]
+    pub fn get(&self, skeleton: &Skeleton) -> Value {
+        // TODO this shouldn't be able to panic
+        match self {
+            Target::Bone { bone, property } => skeleton.bone(*bone).map(|bone| property.get(bone)),
+            Target::Joint { joint, property } => {
+                skeleton.joint(*joint).map(|joint| property.get(joint))
+            }
+        }
+        .unwrap_or(Value::Invalid)
+    }
+
+    pub fn update(&self, value: Value, skeleton: &mut Skeleton) {
+        match self {
+            Target::Bone { bone, property } => {
+                let Some(bone) = skeleton.bone_mut(*bone) else {
+                    return;
+                };
+                property.update(value, bone);
+            }
+            Target::Joint { joint, property } => {
+                let Some(joint) = skeleton.joint_mut(*joint) else {
+                    return;
+                };
+                property.update(value, joint);
+            }
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum BoneProperty {
+    Target,
+    // Scale,
+    Inverse,
+}
+
+impl BoneProperty {
+    #[must_use]
+    pub fn get(&self, bone: &Bone) -> Value {
+        match self {
+            BoneProperty::Target => Value::Vector(
+                bone.desired_end()
+                    .unwrap_or_else(|| Vector::new(bone.kind().full_length(), Angle::default())),
+            ),
+            // BoneProperty::Scale => ,
+            BoneProperty::Inverse => Value::Bool(bone.kind().is_inverse()),
+        }
+    }
+
+    pub fn update(&self, value: Value, bone: &mut Bone) {
+        match self {
+            BoneProperty::Target => {
+                let Value::Vector(value) = value else {
+                    return;
+                };
+                bone.set_desired_end(Some(value));
+            }
+            BoneProperty::Inverse => {
+                let Value::Bool(value) = value else {
+                    return;
+                };
+                bone.kind_mut().set_inverse(value);
+            }
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum JointProperty {
+    Angle,
+}
+
+impl JointProperty {
+    #[must_use]
+    pub fn get(&self, joint: &Joint) -> Value {
+        match self {
+            JointProperty::Angle => Value::Number(joint.angle().to_radians()),
+        }
+    }
+
+    pub fn update(&self, value: Value, joint: &mut Joint) {
+        match self {
+            JointProperty::Angle => {
+                let Value::Number(value) = value else {
+                    return;
+                };
+                joint.set_angle(Angle::radians(value));
+            }
         }
     }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum ChangeKind {
-    Bone { bone: BoneId, position: Vector },
-    Joint { joint: JointId, rotation: Angle },
+pub enum Value {
+    Invalid,
+    Number(f32),
+    Vector(Vector),
+    Bool(bool),
 }
 
-impl ChangeKind {
-    #[must_use]
-    pub const fn with_easing(self, easing: StandardEasing) -> Change {
-        Change { kind: self, easing }
+impl From<f32> for Value {
+    fn from(value: f32) -> Self {
+        Self::Number(value)
     }
 }
 
-enum OriginalProperty {
-    Rotation(Angle),
-    Vector(Vector),
+impl From<Vector> for Value {
+    fn from(value: Vector) -> Self {
+        Self::Vector(value)
+    }
+}
+
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Self::Bool(value)
+    }
+}
+
+impl Lerp for Value {
+    fn lerp(self, target: Self, percent: f32) -> Self {
+        match (self, target) {
+            (Value::Number(this), Value::Number(target)) => {
+                Self::Number(this.lerp(target, percent))
+            }
+            (Value::Vector(this), Value::Vector(target)) => {
+                Self::Vector(this.lerp(target, percent))
+            }
+            (Value::Bool(this), Value::Bool(target)) => Self::Bool(this.lerp(target, percent)),
+            _ => Value::Invalid,
+        }
+    }
+}
+
+impl Add for Value {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Value::Number(this), Value::Number(target)) => Self::Number(this + target),
+            (Value::Vector(this), Value::Vector(target)) => Self::Vector(this + target),
+            (Value::Bool(this), Value::Bool(target)) => Self::Bool(this ^ target),
+            _ => Value::Invalid,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum PropertyUpdate {
+    ChangeTo(Value),
+    Add(Value),
+}
+
+impl PropertyUpdate {
+    #[must_use]
+    pub fn target(&self, initial: Value) -> Value {
+        match self {
+            PropertyUpdate::ChangeTo(target) => *target,
+            PropertyUpdate::Add(delta) => initial + *delta,
+        }
+    }
 }
 
 pub struct RunningAnimation {
     animation: Animation,
-    frame: usize,
-    frame_elapsed: Duration,
+    elapsed: Duration,
     repeat: bool,
-    frame_props: Vec<OriginalProperty>,
+    timelines: Vec<RunningTimeline>,
 }
 
 impl RunningAnimation {
@@ -198,83 +397,152 @@ impl RunningAnimation {
     }
 
     pub fn update(&mut self, elapsed: Duration, skeleton: &mut Skeleton) -> bool {
+        if self.animation.is_empty() {
+            return false;
+        }
+
+        if self.timelines.is_empty() {
+            self.timelines = self
+                .animation
+                .iter()
+                .map(|timeline| {
+                    let frame_start_value = timeline.target.get(skeleton);
+                    RunningTimeline {
+                        frame_entry: Frame::MIN,
+                        frame: 0,
+                        frame_start_value,
+                        frame_target_value: timeline
+                            .frames
+                            .first()
+                            .map_or(Value::Invalid, |f| f.update.target(frame_start_value)),
+                    }
+                })
+                .collect();
+        }
+
+        self.elapsed += elapsed;
+        let frame = Frame::try_from(self.elapsed).unwrap_or(Frame::MAX);
         loop {
-            let Some(frame) = self.animation.get(self.frame) else {
+            let mut still_running = false;
+            let mut remaining = frame;
+            for (index, timeline) in self.timelines.iter_mut().enumerate() {
+                match timeline.update(&self.animation[index], frame, skeleton) {
+                    Ok(_) => {
+                        still_running = true;
+                    }
+                    Err(unused) => {
+                        remaining = remaining.min(unused);
+                    }
+                }
+            }
+
+            if still_running {
                 return false;
-            };
-
-            self.frame_elapsed += elapsed;
-            if let Some(after_frame) = self.frame_elapsed.checked_sub(frame.duration) {
-                self.frame_elapsed = after_frame;
-                self.frame += 1;
-                self.frame_props.clear();
-                if self.frame == self.animation.len() && self.repeat {
-                    self.frame = 0;
-                }
-                // Ensure all of the changes are fully tweened.
-                for change in &frame.changes {
-                    match change.kind {
-                        ChangeKind::Bone {
-                            bone,
-                            position: target,
-                        } => {
-                            skeleton[bone].set_desired_end(Some(target));
-                        }
-
-                        ChangeKind::Joint {
-                            joint,
-                            rotation: target,
-                        } => {
-                            skeleton[joint].set_angle(target);
-                        }
-                    }
-                }
+            } else if self.repeat {
+                self.elapsed = Duration::from(remaining)
+                    + Duration::from_nanos(u64::from(self.elapsed.subsec_nanos() % 1_000_000));
             } else {
-                // If this is the start of the frame, grab the currrent values
-                // to tween towards the next keyframe.
-                if self.frame_props.len() != frame.changes.len() {
-                    self.frame_props.clear();
-                    self.frame_props.reserve(frame.changes.len());
-                    for change in &frame.changes {
-                        self.frame_props.push(match change.kind {
-                            ChangeKind::Bone { bone, .. } => OriginalProperty::Vector(
-                                skeleton[bone].start().vector_to(skeleton[bone].end()),
-                            ),
-
-                            ChangeKind::Joint { joint, .. } => {
-                                OriginalProperty::Rotation(skeleton[joint].angle())
-                            }
-                        });
-                    }
-                }
-
-                let percent = self.frame_elapsed.as_secs_f32() / frame.duration.as_secs_f32();
-                for (change, original) in frame.changes.iter().zip(&self.frame_props) {
-                    let factor = change.easing.ease(percent);
-                    match (change.kind, original) {
-                        (
-                            ChangeKind::Bone {
-                                bone,
-                                position: target,
-                            },
-                            OriginalProperty::Vector(original),
-                        ) => {
-                            skeleton[bone].set_desired_end(Some(original.lerp(target, factor)));
-                        }
-                        (
-                            ChangeKind::Joint {
-                                joint,
-                                rotation: target,
-                            },
-                            OriginalProperty::Rotation(original),
-                        ) => {
-                            skeleton[joint].set_angle(original.lerp(target, factor));
-                        }
-                        _ => unreachable!(),
-                    }
-                }
                 return true;
             }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Ord, PartialOrd, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Frame(u32);
+
+impl Frame {
+    pub const MAX: Self = Self(u32::MAX);
+    pub const MIN: Self = Self(0);
+    pub const ZERO: Self = Self::MIN;
+}
+
+impl Sub for Frame {
+    type Output = Frame;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self(self.0 - rhs.0)
+    }
+}
+
+impl TryFrom<Duration> for Frame {
+    type Error = TryFromIntError;
+
+    fn try_from(value: Duration) -> Result<Self, Self::Error> {
+        value.as_millis().try_into().map(Self)
+    }
+}
+
+impl From<Frame> for Duration {
+    fn from(value: Frame) -> Self {
+        Duration::from_millis(u64::from(value.0))
+    }
+}
+
+impl From<u32> for Frame {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+
+impl From<Frame> for u32 {
+    fn from(value: Frame) -> Self {
+        value.0
+    }
+}
+
+impl From<Frame> for f32 {
+    #[allow(clippy::cast_precision_loss)]
+    fn from(value: Frame) -> Self {
+        value.0 as f32
+    }
+}
+
+struct RunningTimeline {
+    frame_entry: Frame,
+    frame: usize,
+    frame_start_value: Value,
+    frame_target_value: Value,
+}
+
+impl RunningTimeline {
+    fn update(
+        &mut self,
+        timeline: &Timeline,
+        absolute_frame: Frame,
+        skeleton: &mut Skeleton,
+    ) -> Result<Frame, Frame> {
+        let Some(mut frame) = timeline.frames.get(self.frame) else {
+            return Err(absolute_frame);
+        };
+
+        loop {
+            let relative_frame = absolute_frame - self.frame_entry;
+            let total_frames = frame.frame_offset - self.frame_entry;
+            if relative_frame < frame.frame_offset {
+                let percent = if total_frames > Frame::ZERO {
+                    f32::from(relative_frame) / f32::from(total_frames)
+                } else {
+                    1.
+                };
+                let value = self
+                    .frame_start_value
+                    .lerp(self.frame_target_value, percent);
+                timeline.target.update(value, skeleton);
+                return Ok(frame.frame_offset - relative_frame);
+            }
+
+            self.frame_start_value = self.frame_start_value.lerp(self.frame_target_value, 1.0);
+            timeline.target.update(self.frame_start_value, skeleton);
+            self.frame += 1;
+            self.frame_entry = relative_frame;
+
+            let Some(next_frame) = timeline.frames.get(self.frame) else {
+                return Err(self.frame_entry);
+            };
+            self.frame_target_value = next_frame.update.target(self.frame_start_value);
+            frame = next_frame;
         }
     }
 }
@@ -322,4 +590,54 @@ impl Lerp for Vector {
             self.direction.lerp(target.direction, percent),
         )
     }
+}
+
+impl Lerp for bool {
+    fn lerp(self, target: Self, percent: f32) -> Self {
+        if percent >= 0.5 {
+            target
+        } else {
+            self
+        }
+    }
+}
+
+#[test]
+fn basic() {
+    use crate::BoneKind;
+
+    #[track_caller]
+    fn assert_approx_eq(lhs: f32, rhs: f32) {
+        assert!((lhs - rhs).abs() < 0.0001, "{lhs} != {rhs}");
+    }
+
+    let mut skeleton = Skeleton::default();
+    let root = skeleton.push_bone(BoneKind::Rigid { length: 1. });
+    let arm = skeleton.push_bone(BoneKind::Rigid { length: 1. });
+    let joint = skeleton.push_joint(Joint::new(Angle::default(), root.axis_b(), arm.axis_a()));
+
+    let animation = Animation::default().with(
+        Timeline::new(Target::Joint {
+            joint,
+            property: JointProperty::Angle,
+        })
+        .with_frame(Keyframe::new(
+            Frame::ZERO,
+            PropertyUpdate::ChangeTo(Value::from(0.)),
+        ))
+        .with_frame(Keyframe::new(
+            Frame::from(1_000),
+            PropertyUpdate::Add(Value::from(1.)),
+        )),
+    );
+
+    let mut running = animation.start();
+    assert!(!running.update(Duration::from_millis(0), &mut skeleton));
+    assert_approx_eq(skeleton[joint].angle().to_radians(), 0.);
+    assert!(!running.update(Duration::from_millis(250), &mut skeleton));
+    assert_approx_eq(skeleton[joint].angle().to_radians(), 0.25);
+    assert!(!running.update(Duration::from_millis(500), &mut skeleton));
+    assert_approx_eq(skeleton[joint].angle().to_radians(), 0.75);
+    assert!(running.update(Duration::from_millis(500), &mut skeleton));
+    assert_approx_eq(skeleton[joint].angle().to_radians(), 1.0);
 }

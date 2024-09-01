@@ -728,9 +728,9 @@ checksum = "f25c0e292a7ca6d6498557ff1df68f32c99850012b6ea401cf8daf771f22ff53"
 
 [[package]]
 name = "easing-function"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5699e572f2ece3d6ea49a528341097d26117751ea0a8ed3adab747bb6e96c480"
+checksum = "1ff18235504129e34c411871066cfa4ad108ed6a28d5fb2417057aff7f99bee4"
 dependencies = [
  "serde",
 ]

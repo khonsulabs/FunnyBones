@@ -267,6 +267,14 @@ impl From<Coordinate> for Vector {
     }
 }
 
+impl Add for Vector {
+    type Output = Self;
+
+    fn add(self, rhs: Vector) -> Self::Output {
+        Vector::from(Coordinate::from(self) + Coordinate::from(rhs))
+    }
+}
+
 impl Add<Vector> for Coordinate {
     type Output = Self;
 
@@ -346,6 +354,25 @@ impl BoneKind {
                 ..
             } => *start_length + *end_length,
         }
+    }
+
+    /// Returns true if this is a jointed bone that bends inversely.
+    #[must_use]
+    pub fn is_inverse(&self) -> bool {
+        match self {
+            BoneKind::Rigid { .. } => false,
+            BoneKind::Jointed { inverse, .. } => *inverse,
+        }
+    }
+
+    /// Sets whether to bend inversely.
+    ///
+    /// This function only affects a jointed bone kind.
+    pub fn set_inverse(&mut self, new_inverse: bool) {
+        let BoneKind::Jointed { inverse, .. } = self else {
+            return;
+        };
+        *inverse = new_inverse;
     }
 }
 
@@ -440,6 +467,32 @@ impl Skeleton {
     #[must_use]
     pub fn joints(&self) -> &[Joint] {
         &self.joints
+    }
+
+    /// Returns the bone for a given id, or none if not found.
+    #[must_use]
+    pub fn bone(&self, id: BoneId) -> Option<&Bone> {
+        self.bones.get(id.index())
+    }
+
+    /// Returns an exclusive reference to the bone for a given id, or none if
+    /// not found.
+    #[must_use]
+    pub fn bone_mut(&mut self, id: BoneId) -> Option<&mut Bone> {
+        self.bones.get_mut(id.index())
+    }
+
+    /// Returns the joint for a given id, or none if not found.
+    #[must_use]
+    pub fn joint(&self, id: JointId) -> Option<&Joint> {
+        self.joints.get(id.index())
+    }
+
+    /// Returns an exclusive reference to the joint for a given id, or none if
+    /// not found.
+    #[must_use]
+    pub fn joint_mut(&mut self, id: JointId) -> Option<&mut Joint> {
+        self.joints.get_mut(id.index())
     }
 
     /// Returns a list of joints connected to a specific bone axis.
@@ -729,6 +782,12 @@ impl Bone {
     #[must_use]
     pub const fn kind(&self) -> &BoneKind {
         &self.kind
+    }
+
+    /// Returns an exclusive reference to the kind of this bone.
+    #[must_use]
+    pub fn kind_mut(&mut self) -> &mut BoneKind {
+        &mut self.kind
     }
 
     /// Sets a relative position to aim the end of this bone towards.
