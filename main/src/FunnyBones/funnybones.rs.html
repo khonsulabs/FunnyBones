@@ -422,12 +422,24 @@
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
 
 </span><span class="kw">use </span>std::ops::ControlFlow;
 
 <span class="kw">use </span>cushy::{
-    value::{Destination, Dynamic, DynamicRead, ForEach, Source, Switchable},
+    animation::ZeroToOne,
+    value::{Destination, Dynamic, DynamicRead, Source, Switchable},
     widget::{MakeWidget, WidgetList},
     widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
     Run,
@@ -473,18 +485,16 @@
     }
 }
 
-<span class="comment">// TODO we want joint labels here somehow
-</span><span class="kw">fn </span>add_bones_to_skeleton(
+<span class="kw">fn </span>add_bones_to_skeleton(
     connected_to: BoneAxis,
     bones: <span class="kw-2">&amp;</span>Dynamic&lt;Vec&lt;SkeletalBone&gt;&gt;,
     skeleton: <span class="kw-2">&amp;mut </span>Skeleton,
 ) {
     <span class="kw">let </span>bones = bones.read();
     <span class="kw">for </span>bone <span class="kw">in </span><span class="kw-2">&amp;*</span>bones {
-        <span class="kw">let </span>new_bone = skeleton.push_bone(bone.as_bone_kind());
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(desired_end) = bone.desired_end.get() {
-            skeleton[new_bone].set_desired_end(<span class="prelude-val">Some</span>(desired_end));
-        }
+        <span class="kw">let </span>(kind, vector) = bone.as_bone_kind();
+        <span class="kw">let </span>new_bone = skeleton.push_bone(kind);
+        skeleton[new_bone].set_desired_end(<span class="prelude-val">Some</span>(vector));
         skeleton.push_joint(
             Joint::new(bone.joint_angle.get(), connected_to, new_bone.axis_a())
                 .with_label(bone.joint_label.get()),
@@ -499,7 +509,8 @@
         <span class="kw">let </span>editing_skeleton = editing_skeleton.clone();
         <span class="kw">move </span>|| {
             <span class="kw">let </span><span class="kw-2">mut </span>skeleton = Skeleton::default();
-            <span class="kw">let </span>root = skeleton.push_bone(editing_skeleton.root.as_bone_kind());
+            <span class="kw">let </span>(kind, _vector) = editing_skeleton.root.as_bone_kind();
+            <span class="kw">let </span>root = skeleton.push_bone(kind);
             add_bones_to_skeleton(
                 root.axis_b(),
                 <span class="kw-2">&amp;</span>editing_skeleton.root.connected_bones,
@@ -514,11 +525,11 @@
     <span class="kw">let </span>mode = Dynamic::&lt;Mode&gt;::default();
     <span class="kw">let </span>canvas = SkeletonCanvas::new(skeleton).on_mutate({
         <span class="kw">move </span>|mutation| <span class="kw">match </span>mutation {
-            SkeletonMutation::SetDesiredEnd { bone, end } =&gt; editing_skeleton
-                .find_bone(bone)
-                .expect(<span class="string">"missing bone"</span>)
-                .desired_end
-                .set(<span class="prelude-val">Some</span>(end)),
+            SkeletonMutation::SetDesiredEnd { bone, end } =&gt; {
+                <span class="kw">let </span>bone = editing_skeleton.find_bone(bone).expect(<span class="string">"missing bone"</span>);
+                bone.desired_length.set(end.magnitude);
+                bone.joint_angle.set(end.direction);
+            }
             SkeletonMutation::SetJointRotation { joint, rotation } =&gt; editing_skeleton
                 .find_joint(joint)
                 .expect(<span class="string">"missing joint"</span>)
@@ -626,25 +637,41 @@
     joint_label: Dynamic&lt;String&gt;,
     joint_angle: Dynamic&lt;Angle&gt;,
     length: Dynamic&lt;f32&gt;,
-    jointed: Dynamic&lt;<span class="prelude-ty">Option</span>&lt;f32&gt;&gt;,
+    jointed: Dynamic&lt;bool&gt;,
+    joint_ratio: Dynamic&lt;ZeroToOne&gt;,
     inverse: Dynamic&lt;bool&gt;,
-    desired_end: Dynamic&lt;<span class="prelude-ty">Option</span>&lt;Vector&gt;&gt;,
+    desired_length: Dynamic&lt;f32&gt;,
     connected_bones: Dynamic&lt;Vec&lt;SkeletalBone&gt;&gt;,
 }
 
 <span class="kw">impl </span>SkeletalBone {
-    <span class="kw">pub fn </span>as_bone_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LabeledBoneKind {
-        <span class="kw">match </span><span class="self">self</span>.jointed.get() {
-            <span class="prelude-val">Some</span>(joint) =&gt; BoneKind::Jointed {
-                start_length: <span class="self">self</span>.length.get(),
-                end_length: joint,
-                inverse: <span class="self">self</span>.inverse.get(),
-            },
-            <span class="prelude-val">None </span>=&gt; BoneKind::Rigid {
-                length: <span class="self">self</span>.length.get(),
-            },
-        }
-        .with_label(<span class="self">self</span>.label.get())
+    <span class="kw">pub fn </span>as_bone_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (LabeledBoneKind, Vector) {
+        <span class="kw">let </span>length = <span class="self">self</span>.length.get();
+        <span class="kw">let </span>(vector_length, kind) = <span class="kw">if </span><span class="self">self</span>.jointed.get() {
+            <span class="kw">let </span>joint_ratio = <span class="self">self</span>.joint_ratio.get();
+            <span class="kw">let </span>start_length = length * <span class="kw-2">*</span>joint_ratio;
+            <span class="kw">let </span>end_length = length - start_length;
+            (
+                <span class="self">self</span>.desired_length.get(),
+                BoneKind::Jointed {
+                    start_length,
+                    end_length,
+                    inverse: <span class="self">self</span>.inverse.get(),
+                },
+            )
+        } <span class="kw">else </span>{
+            (
+                length,
+                BoneKind::Rigid {
+                    length: <span class="self">self</span>.length.get(),
+                },
+            )
+        };
+
+        (
+            kind.with_label(<span class="self">self</span>.label.get()),
+            Vector::new(vector_length, <span class="self">self</span>.joint_angle.get()),
+        )
     }
 }
 
@@ -656,8 +683,9 @@
             label: Dynamic::default(),
             length: Dynamic::new(<span class="number">1.</span>),
             jointed: Dynamic::default(),
+            joint_ratio: Dynamic::new(ZeroToOne::new(<span class="number">0.5</span>)),
             inverse: Dynamic::default(),
-            desired_end: Dynamic::default(),
+            desired_length: Dynamic::default(),
             connected_bones: Dynamic::default(),
         }
     }
@@ -728,13 +756,24 @@
     watcher.watch(<span class="kw-2">&amp;</span>bone.label);
     watcher.watch(<span class="kw-2">&amp;</span>bone.length);
     watcher.watch(<span class="kw-2">&amp;</span>bone.joint_angle);
-    watcher.watch(<span class="kw-2">&amp;</span>bone.desired_end);
-    <span class="kw">let </span>(second, jointed) = <span class="kw">if let </span><span class="prelude-val">Some</span>(length) = bone.jointed.get() {
-        (length, <span class="bool-val">true</span>)
-    } <span class="kw">else </span>{
-        (<span class="number">1.</span>, <span class="bool-val">false</span>)
-    };
-    <span class="kw">let </span>jointed = Dynamic::new(jointed);
+    watcher.watch(<span class="kw-2">&amp;</span>bone.joint_ratio);
+    watcher.watch(<span class="kw-2">&amp;</span>bone.desired_length);
+
+    bone.jointed
+        .for_each_cloned({
+            <span class="kw">let </span><span class="kw-2">mut </span>was_jointed = bone.jointed.get();
+            <span class="kw">let </span>desired_length = bone.desired_length.clone();
+            <span class="kw">let </span>length = bone.length.clone();
+            <span class="kw">move </span>|jointed| {
+                <span class="kw">if </span>jointed &amp;&amp; !was_jointed {
+                    <span class="comment">// When enabling jointed, we want to initialize the desired
+                    // length to the current length.
+                    </span>desired_length.set(length.get());
+                }
+                was_jointed = jointed;
+            }
+        })
+        .persist();
 
     <span class="kw">let </span>first = Dynamic::new(bone.length.get().to_string());
     <span class="kw">let </span>first_parsed = first.map_each(|s| s.parse::&lt;f32&gt;());
@@ -742,18 +781,6 @@
         .for_each(<span class="kw">move </span>|result| {
             <span class="kw">let </span><span class="prelude-val">Ok</span>(new_value) = result <span class="kw">else </span>{ <span class="kw">return </span>};
             bone.length.set(<span class="kw-2">*</span>new_value);
-        })
-        .persist();
-    <span class="kw">let </span>second = Dynamic::new(second.to_string());
-    <span class="kw">let </span>second_parsed = second.map_each(|s| s.parse::&lt;f32&gt;());
-    (<span class="kw-2">&amp;</span>jointed, <span class="kw-2">&amp;</span>second_parsed)
-        .for_each(<span class="kw">move </span>|(jointed, result)| {
-            <span class="kw">if </span><span class="kw-2">*</span>jointed {
-                <span class="kw">let </span><span class="prelude-val">Ok</span>(new_value) = result <span class="kw">else </span>{ <span class="kw">return </span>};
-                bone.jointed.set(<span class="prelude-val">Some</span>(<span class="kw-2">*</span>new_value));
-            } <span class="kw">else </span>{
-                bone.jointed.set(<span class="prelude-val">None</span>);
-            }
         })
         .persist();
 
@@ -764,18 +791,13 @@
         .placeholder(<span class="string">"Length"</span>)
         .validation(first_parsed);
 
-    <span class="kw">let </span>jointed_editor = jointed.clone().into_checkbox(<span class="string">"Jointed"</span>);
+    <span class="kw">let </span>jointed_editor = bone.jointed.clone().into_checkbox(<span class="string">"Jointed"</span>);
 
     <span class="kw">let </span>rotation = bone.joint_angle.slider();
 
     <span class="kw">let </span>joint_row = <span class="string">"Second Bone Segment Length"
         </span>.align_left()
-        .and(
-            second
-                .into_input()
-                .with_enabled(jointed.clone())
-                .validation(second_parsed),
-        )
+        .and(bone.joint_ratio.slider().with_enabled(bone.jointed.clone()))
         .into_rows()
         .fit_horizontally()
         .align_top()
@@ -783,7 +805,7 @@
         .and(
             bone.inverse
                 .into_checkbox(<span class="string">"Inverse"</span>)
-                .with_enabled(jointed.clone())
+                .with_enabled(bone.jointed.clone())
                 .fit_horizontally(),
         )
         .and(Space::clear().expand_weighted(<span class="number">2</span>))
@@ -801,10 +823,10 @@
 
     <span class="kw">let </span>second_row = <span class="kw">if </span>is_root {
         joint_row
-            .collapse_vertically(jointed.map_each_cloned(|j| !j))
+            .collapse_vertically(bone.jointed.map_each_cloned(|j| !j))
             .make_widget()
     } <span class="kw">else </span>{
-        jointed
+        bone.jointed
             .clone()
             .switcher(<span class="kw">move </span>|jointed, <span class="kw">_</span>| {
                 <span class="kw">if </span><span class="kw-2">*</span>jointed {

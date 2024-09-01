@@ -640,7 +640,6 @@
 <a href="#640" id="640">640</a>
 <a href="#641" id="641">641</a>
 <a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)]
 </span><span class="kw">use </span>std::{
     borrow::Cow,
@@ -860,8 +859,7 @@
 <span class="kw">impl </span>Target {
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, skeleton: <span class="kw-2">&amp;</span>Skeleton) -&gt; Value {
-        <span class="comment">// TODO this shouldn't be able to panic
-        </span><span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
             Target::Bone { bone, property } =&gt; skeleton.bone(<span class="kw-2">*</span>bone).map(|bone| property.get(bone)),
             Target::Joint { joint, property } =&gt; {
                 skeleton.joint(<span class="kw-2">*</span>joint).map(|joint| property.get(joint))
