@@ -1,9 +1,9 @@
 (function() {
-    var implementors = Object.fromEntries([["funnybones",[["impl PercentBetween for <a class=\"struct\" href=\"funnybones/struct.Angle.html\" title=\"struct funnybones::Angle\">Angle</a>"]]]]);
+    var implementors = Object.fromEntries([["funnybones",[["impl PercentBetween for <a class=\"struct\" href=\"funnybones/struct.Angle.html\" title=\"struct funnybones::Angle\">Angle</a>"],["impl PercentBetween for <a class=\"struct\" href=\"funnybones/struct.Rotation.html\" title=\"struct funnybones::Rotation\">Rotation</a>"]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
         window.pending_implementors = implementors;
     }
 })()
-//{"start":57,"fragment_lengths":[147]}
+//{"start":57,"fragment_lengths":[287]}

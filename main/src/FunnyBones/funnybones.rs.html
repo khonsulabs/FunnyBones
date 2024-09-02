@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/funnybones.rs`."><title>funnybones.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="FunnyBones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (a7399ba69 2024-08-31)" data-channel="nightly" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/funnybones.rs`."><title>funnybones.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="FunnyBones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0-nightly (94885bc69 2024-09-01)" data-channel="nightly" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -419,34 +419,20 @@
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
 
 </span><span class="kw">use </span>std::ops::ControlFlow;
 
 <span class="kw">use </span>cushy::{
     animation::ZeroToOne,
-    value::{Destination, Dynamic, DynamicRead, Source, Switchable},
+    value::{Destination, Dynamic, DynamicRead, Source, Switchable, Watcher},
     widget::{MakeWidget, WidgetList},
     widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
     Run,
 };
 <span class="kw">use </span>funnybones::{
     cushy::skeleton_canvas::{SkeletonCanvas, SkeletonMutation},
-    Angle, BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Skeleton, Vector,
+    Angle, BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Rotation, Skeleton, Vector,
 };
 
 <span class="attr">#[derive(Default, Eq, PartialEq, Debug, Clone, Copy)]
@@ -454,35 +440,6 @@
     <span class="attr">#[default]
     </span>Bones,
     Animation,
-}
-
-<span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">struct </span>ChangeAggregator(Dynamic&lt;usize&gt;);
-
-<span class="kw">impl </span>ChangeAggregator {
-    <span class="kw">pub fn </span>new&lt;F, T&gt;(<span class="kw-2">mut </span>when_changed: F) -&gt; (<span class="self">Self</span>, Dynamic&lt;T&gt;)
-    <span class="kw">where
-        </span>F: FnMut() -&gt; T + Send + <span class="lifetime">'static</span>,
-        T: PartialEq + Send + <span class="lifetime">'static</span>,
-    {
-        <span class="kw">let </span>counter = Dynamic::new(<span class="number">0</span>);
-        <span class="kw">let </span>result = counter.map_each(<span class="kw">move </span>|<span class="kw">_</span>| when_changed());
-
-        (<span class="self">Self</span>(counter), result)
-    }
-
-    <span class="kw">pub fn </span>watch&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Dynamic&lt;T&gt;)
-    <span class="kw">where
-        </span>T: Send + <span class="lifetime">'static</span>,
-    {
-        <span class="kw">let </span>counter = <span class="self">self</span>.<span class="number">0</span>.clone();
-        other
-            .for_each_subsequent_generational(<span class="kw">move </span>|guard| {
-                drop(guard);
-                <span class="kw-2">*</span>counter.lock() += <span class="number">1</span>;
-            })
-            .persist();
-    }
 }
 
 <span class="kw">fn </span>add_bones_to_skeleton(
@@ -493,11 +450,15 @@
     <span class="kw">let </span>bones = bones.read();
     <span class="kw">for </span>bone <span class="kw">in </span><span class="kw-2">&amp;*</span>bones {
         <span class="kw">let </span>(kind, vector) = bone.as_bone_kind();
+        <span class="kw">let </span>angle = <span class="kw">if let </span>BoneKind::Jointed { .. } = <span class="kw-2">&amp;</span>kind.kind {
+            Rotation::default()
+        } <span class="kw">else </span>{
+            bone.joint_angle.get().into()
+        };
         <span class="kw">let </span>new_bone = skeleton.push_bone(kind);
         skeleton[new_bone].set_desired_end(<span class="prelude-val">Some</span>(vector));
         skeleton.push_joint(
-            Joint::new(bone.joint_angle.get(), connected_to, new_bone.axis_a())
-                .with_label(bone.joint_label.get()),
+            Joint::new(angle, connected_to, new_bone.axis_a()).with_label(bone.joint_label.get()),
         );
         add_bones_to_skeleton(new_bone.axis_b(), <span class="kw-2">&amp;</span>bone.connected_bones, skeleton);
     }
@@ -505,12 +466,15 @@
 
 <span class="kw">fn </span>main() -&gt; cushy::Result {
     <span class="kw">let </span>editing_skeleton = EditingSkeleton::default();
-    <span class="kw">let </span>(watcher, skeleton) = ChangeAggregator::new({
+    <span class="kw">let </span>watcher = Watcher::default();
+    <span class="kw">let </span>skeleton = watcher.map_changed({
         <span class="kw">let </span>editing_skeleton = editing_skeleton.clone();
         <span class="kw">move </span>|| {
             <span class="kw">let </span><span class="kw-2">mut </span>skeleton = Skeleton::default();
+            skeleton.set_rotation(editing_skeleton.root.joint_angle.get().into());
             <span class="kw">let </span>(kind, _vector) = editing_skeleton.root.as_bone_kind();
             <span class="kw">let </span>root = skeleton.push_bone(kind);
+
             add_bones_to_skeleton(
                 root.axis_b(),
                 <span class="kw-2">&amp;</span>editing_skeleton.root.connected_bones,
@@ -528,13 +492,13 @@
             SkeletonMutation::SetDesiredEnd { bone, end } =&gt; {
                 <span class="kw">let </span>bone = editing_skeleton.find_bone(bone).expect(<span class="string">"missing bone"</span>);
                 bone.desired_length.set(end.magnitude);
-                bone.joint_angle.set(end.direction);
+                bone.joint_angle.set(end.direction.into());
             }
             SkeletonMutation::SetJointRotation { joint, rotation } =&gt; editing_skeleton
                 .find_joint(joint)
                 .expect(<span class="string">"missing joint"</span>)
                 .joint_angle
-                .set(rotation),
+                .set(rotation.into()),
         }
     });
     <span class="kw">let </span>zoom = canvas
@@ -670,7 +634,7 @@
 
         (
             kind.with_label(<span class="self">self</span>.label.get()),
-            Vector::new(vector_length, <span class="self">self</span>.joint_angle.get()),
+            Vector::new(vector_length, <span class="self">self</span>.joint_angle.get().into()),
         )
     }
 }
@@ -679,7 +643,7 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             joint_label: Dynamic::default(),
-            joint_angle: Dynamic::new(Angle::degrees(<span class="number">90.</span>)),
+            joint_angle: Dynamic::default(),
             label: Dynamic::default(),
             length: Dynamic::new(<span class="number">1.</span>),
             jointed: Dynamic::default(),
@@ -691,7 +655,7 @@
     }
 }
 
-<span class="kw">fn </span>skeleton_editor(skeleton: <span class="kw-2">&amp;</span>EditingSkeleton, watcher: <span class="kw-2">&amp;</span>ChangeAggregator) -&gt; <span class="kw">impl </span>MakeWidget {
+<span class="kw">fn </span>skeleton_editor(skeleton: <span class="kw-2">&amp;</span>EditingSkeleton, watcher: <span class="kw-2">&amp;</span>Watcher) -&gt; <span class="kw">impl </span>MakeWidget {
     bone_property_editor(skeleton.root.clone(), watcher, <span class="bool-val">true</span>)
         .and(bones_editor(
             <span class="string">"Upper Root Bones"</span>,
@@ -707,7 +671,7 @@
 <span class="kw">fn </span>bones_editor(
     label: <span class="kw-2">&amp;</span>str,
     bones: <span class="kw-2">&amp;</span>Dynamic&lt;Vec&lt;SkeletalBone&gt;&gt;,
-    watcher: <span class="kw-2">&amp;</span>ChangeAggregator,
+    watcher: <span class="kw-2">&amp;</span>Watcher,
 ) -&gt; <span class="kw">impl </span>MakeWidget {
     watcher.watch(bones);
     <span class="kw">let </span>bone_editors = Dynamic::new(
@@ -737,7 +701,7 @@
         .collapsed(collapsed)
         .contain()
 }
-<span class="kw">fn </span>bone_editor(bone: SkeletalBone, watcher: <span class="kw-2">&amp;</span>ChangeAggregator) -&gt; <span class="kw">impl </span>MakeWidget {
+<span class="kw">fn </span>bone_editor(bone: SkeletalBone, watcher: <span class="kw-2">&amp;</span>Watcher) -&gt; <span class="kw">impl </span>MakeWidget {
     <span class="kw">let </span>bones = bones_editor(<span class="string">"Connected Bones"</span>, <span class="kw-2">&amp;</span>bone.connected_bones, watcher);
     bone_property_editor(bone, watcher, <span class="bool-val">false</span>)
         .and(bones)
@@ -745,11 +709,7 @@
 }
 
 <span class="attr">#[allow(clippy::too_many_lines)]
-</span><span class="kw">fn </span>bone_property_editor(
-    bone: SkeletalBone,
-    watcher: <span class="kw-2">&amp;</span>ChangeAggregator,
-    is_root: bool,
-) -&gt; <span class="kw">impl </span>MakeWidget {
+</span><span class="kw">fn </span>bone_property_editor(bone: SkeletalBone, watcher: <span class="kw-2">&amp;</span>Watcher, is_root: bool) -&gt; <span class="kw">impl </span>MakeWidget {
     watcher.watch(<span class="kw-2">&amp;</span>bone.joint_label);
     watcher.watch(<span class="kw-2">&amp;</span>bone.inverse);
     watcher.watch(<span class="kw-2">&amp;</span>bone.jointed);
@@ -758,6 +718,8 @@
     watcher.watch(<span class="kw-2">&amp;</span>bone.joint_angle);
     watcher.watch(<span class="kw-2">&amp;</span>bone.joint_ratio);
     watcher.watch(<span class="kw-2">&amp;</span>bone.desired_length);
+
+    <span class="kw">let </span>columns_wide = <span class="number">3 </span>+ u8::from(!is_root);
 
     bone.jointed
         .for_each_cloned({
@@ -795,56 +757,66 @@
 
     <span class="kw">let </span>rotation = bone.joint_angle.slider();
 
-    <span class="kw">let </span>joint_row = <span class="string">"Second Bone Segment Length"
-        </span>.align_left()
-        .and(bone.joint_ratio.slider().with_enabled(bone.jointed.clone()))
+    <span class="kw">let </span>joint_angle = <span class="kw">if </span>is_root { <span class="string">"Rotation" </span>} <span class="kw">else </span>{ <span class="string">"Joint Angle" </span>}
+        .align_left()
+        .and(rotation.clone())
         .into_rows()
-        .fit_horizontally()
-        .align_top()
         .expand()
+        .make_widget();
+
+    <span class="kw">let </span>joint_row = joint_angle
+        .clone()
+        .and(
+            <span class="string">"Midpoint"
+                </span>.align_left()
+                .and(bone.joint_ratio.slider().with_enabled(bone.jointed.clone()))
+                .into_rows()
+                .fit_horizontally()
+                .align_top()
+                .expand(),
+        )
         .and(
             bone.inverse
                 .into_checkbox(<span class="string">"Inverse"</span>)
                 .with_enabled(bone.jointed.clone())
                 .fit_horizontally(),
         )
-        .and(Space::clear().expand_weighted(<span class="number">2</span>))
+        .and(Space::clear().expand_weighted(columns_wide - <span class="number">3</span>))
         .into_columns()
         .make_widget();
 
-    <span class="kw">let </span>non_joint_row = <span class="string">"Joint Angle"
-        </span>.align_left()
-        .and(rotation)
-        .into_rows()
-        .expand()
-        .and(Space::clear().expand_weighted(<span class="number">4</span>))
+    <span class="kw">let </span>non_joint_row = joint_angle
+        .and(Space::clear().expand_weighted(columns_wide - <span class="number">1</span>))
         .into_columns()
         .make_widget();
 
-    <span class="kw">let </span>second_row = <span class="kw">if </span>is_root {
-        joint_row
-            .collapse_vertically(bone.jointed.map_each_cloned(|j| !j))
-            .make_widget()
+    <span class="kw">let </span>second_row = bone
+        .jointed
+        .clone()
+        .switcher(<span class="kw">move </span>|jointed, <span class="kw">_</span>| {
+            <span class="kw">if </span><span class="kw-2">*</span>jointed {
+                joint_row.clone()
+            } <span class="kw">else </span>{
+                non_joint_row.clone()
+            }
+        })
+        .make_widget();
+
+    <span class="kw">let </span>first_row = <span class="kw">if </span>is_root {
+        WidgetList::new()
     } <span class="kw">else </span>{
-        bone.jointed
-            .clone()
-            .switcher(<span class="kw">move </span>|jointed, <span class="kw">_</span>| {
-                <span class="kw">if </span><span class="kw-2">*</span>jointed {
-                    joint_row.clone()
-                } <span class="kw">else </span>{
-                    non_joint_row.clone()
-                }
-            })
-            .make_widget()
+        WidgetList::new().and(
+            <span class="string">"Joint Name"
+                </span>.align_left()
+                .and(joint_label_editor)
+                .into_rows()
+                .fit_horizontally()
+                .align_top()
+                .expand(),
+        )
     };
 
-    <span class="string">"Joint Name"
-        </span>.align_left()
-        .and(joint_label_editor)
-        .into_rows()
-        .fit_horizontally()
-        .align_top()
-        .expand()
+    first_row
         .and(
             <span class="string">"Bone Name"
                 </span>.align_left()
