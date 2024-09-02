@@ -4,14 +4,14 @@ use std::ops::ControlFlow;
 
 use cushy::{
     animation::ZeroToOne,
-    value::{Destination, Dynamic, DynamicRead, Source, Switchable},
+    value::{Destination, Dynamic, DynamicRead, Source, Switchable, Watcher},
     widget::{MakeWidget, WidgetList},
     widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
     Run,
 };
 use funnybones::{
     cushy::skeleton_canvas::{SkeletonCanvas, SkeletonMutation},
-    Angle, BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Skeleton, Vector,
+    Angle, BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Rotation, Skeleton, Vector,
 };
 
 #[derive(Default, Eq, PartialEq, Debug, Clone, Copy)]
@@ -19,35 +19,6 @@ enum Mode {
     #[default]
     Bones,
     Animation,
-}
-
-#[derive(Debug, Clone)]
-struct ChangeAggregator(Dynamic<usize>);
-
-impl ChangeAggregator {
-    pub fn new<F, T>(mut when_changed: F) -> (Self, Dynamic<T>)
-    where
-        F: FnMut() -> T + Send + 'static,
-        T: PartialEq + Send + 'static,
-    {
-        let counter = Dynamic::new(0);
-        let result = counter.map_each(move |_| when_changed());
-
-        (Self(counter), result)
-    }
-
-    pub fn watch<T>(&self, other: &Dynamic<T>)
-    where
-        T: Send + 'static,
-    {
-        let counter = self.0.clone();
-        other
-            .for_each_subsequent_generational(move |guard| {
-                drop(guard);
-                *counter.lock() += 1;
-            })
-            .persist();
-    }
 }
 
 fn add_bones_to_skeleton(
@@ -58,11 +29,15 @@ fn add_bones_to_skeleton(
     let bones = bones.read();
     for bone in &*bones {
         let (kind, vector) = bone.as_bone_kind();
+        let angle = if let BoneKind::Jointed { .. } = &kind.kind {
+            Rotation::default()
+        } else {
+            bone.joint_angle.get().into()
+        };
         let new_bone = skeleton.push_bone(kind);
         skeleton[new_bone].set_desired_end(Some(vector));
         skeleton.push_joint(
-            Joint::new(bone.joint_angle.get(), connected_to, new_bone.axis_a())
-                .with_label(bone.joint_label.get()),
+            Joint::new(angle, connected_to, new_bone.axis_a()).with_label(bone.joint_label.get()),
         );
         add_bones_to_skeleton(new_bone.axis_b(), &bone.connected_bones, skeleton);
     }
@@ -70,12 +45,15 @@ fn add_bones_to_skeleton(
 
 fn main() -> cushy::Result {
     let editing_skeleton = EditingSkeleton::default();
-    let (watcher, skeleton) = ChangeAggregator::new({
+    let watcher = Watcher::default();
+    let skeleton = watcher.map_changed({
         let editing_skeleton = editing_skeleton.clone();
         move || {
             let mut skeleton = Skeleton::default();
+            skeleton.set_rotation(editing_skeleton.root.joint_angle.get().into());
             let (kind, _vector) = editing_skeleton.root.as_bone_kind();
             let root = skeleton.push_bone(kind);
+
             add_bones_to_skeleton(
                 root.axis_b(),
                 &editing_skeleton.root.connected_bones,
@@ -93,13 +71,13 @@ fn main() -> cushy::Result {
             SkeletonMutation::SetDesiredEnd { bone, end } => {
                 let bone = editing_skeleton.find_bone(bone).expect("missing bone");
                 bone.desired_length.set(end.magnitude);
-                bone.joint_angle.set(end.direction);
+                bone.joint_angle.set(end.direction.into());
             }
             SkeletonMutation::SetJointRotation { joint, rotation } => editing_skeleton
                 .find_joint(joint)
                 .expect("missing joint")
                 .joint_angle
-                .set(rotation),
+                .set(rotation.into()),
         }
     });
     let zoom = canvas
@@ -235,7 +213,7 @@ impl SkeletalBone {
 
         (
             kind.with_label(self.label.get()),
-            Vector::new(vector_length, self.joint_angle.get()),
+            Vector::new(vector_length, self.joint_angle.get().into()),
         )
     }
 }
@@ -244,7 +222,7 @@ impl Default for SkeletalBone {
     fn default() -> Self {
         Self {
             joint_label: Dynamic::default(),
-            joint_angle: Dynamic::new(Angle::degrees(90.)),
+            joint_angle: Dynamic::default(),
             label: Dynamic::default(),
             length: Dynamic::new(1.),
             jointed: Dynamic::default(),
@@ -256,7 +234,7 @@ impl Default for SkeletalBone {
     }
 }
 
-fn skeleton_editor(skeleton: &EditingSkeleton, watcher: &ChangeAggregator) -> impl MakeWidget {
+fn skeleton_editor(skeleton: &EditingSkeleton, watcher: &Watcher) -> impl MakeWidget {
     bone_property_editor(skeleton.root.clone(), watcher, true)
         .and(bones_editor(
             "Upper Root Bones",
@@ -272,7 +250,7 @@ fn skeleton_editor(skeleton: &EditingSkeleton, watcher: &ChangeAggregator) -> im
 fn bones_editor(
     label: &str,
     bones: &Dynamic<Vec<SkeletalBone>>,
-    watcher: &ChangeAggregator,
+    watcher: &Watcher,
 ) -> impl MakeWidget {
     watcher.watch(bones);
     let bone_editors = Dynamic::new(
@@ -302,7 +280,7 @@ fn bones_editor(
         .collapsed(collapsed)
         .contain()
 }
-fn bone_editor(bone: SkeletalBone, watcher: &ChangeAggregator) -> impl MakeWidget {
+fn bone_editor(bone: SkeletalBone, watcher: &Watcher) -> impl MakeWidget {
     let bones = bones_editor("Connected Bones", &bone.connected_bones, watcher);
     bone_property_editor(bone, watcher, false)
         .and(bones)
@@ -310,11 +288,7 @@ fn bone_editor(bone: SkeletalBone, watcher: &ChangeAggregator) -> impl MakeWidge
 }
 
 #[allow(clippy::too_many_lines)]
-fn bone_property_editor(
-    bone: SkeletalBone,
-    watcher: &ChangeAggregator,
-    is_root: bool,
-) -> impl MakeWidget {
+fn bone_property_editor(bone: SkeletalBone, watcher: &Watcher, is_root: bool) -> impl MakeWidget {
     watcher.watch(&bone.joint_label);
     watcher.watch(&bone.inverse);
     watcher.watch(&bone.jointed);
@@ -323,6 +297,8 @@ fn bone_property_editor(
     watcher.watch(&bone.joint_angle);
     watcher.watch(&bone.joint_ratio);
     watcher.watch(&bone.desired_length);
+
+    let columns_wide = 3 + u8::from(!is_root);
 
     bone.jointed
         .for_each_cloned({
@@ -360,56 +336,66 @@ fn bone_property_editor(
 
     let rotation = bone.joint_angle.slider();
 
-    let joint_row = "Second Bone Segment Length"
+    let joint_angle = if is_root { "Rotation" } else { "Joint Angle" }
         .align_left()
-        .and(bone.joint_ratio.slider().with_enabled(bone.jointed.clone()))
+        .and(rotation.clone())
         .into_rows()
-        .fit_horizontally()
-        .align_top()
         .expand()
+        .make_widget();
+
+    let joint_row = joint_angle
+        .clone()
+        .and(
+            "Midpoint"
+                .align_left()
+                .and(bone.joint_ratio.slider().with_enabled(bone.jointed.clone()))
+                .into_rows()
+                .fit_horizontally()
+                .align_top()
+                .expand(),
+        )
         .and(
             bone.inverse
                 .into_checkbox("Inverse")
                 .with_enabled(bone.jointed.clone())
                 .fit_horizontally(),
         )
-        .and(Space::clear().expand_weighted(2))
+        .and(Space::clear().expand_weighted(columns_wide - 3))
         .into_columns()
         .make_widget();
 
-    let non_joint_row = "Joint Angle"
-        .align_left()
-        .and(rotation)
-        .into_rows()
-        .expand()
-        .and(Space::clear().expand_weighted(4))
+    let non_joint_row = joint_angle
+        .and(Space::clear().expand_weighted(columns_wide - 1))
         .into_columns()
         .make_widget();
 
-    let second_row = if is_root {
-        joint_row
-            .collapse_vertically(bone.jointed.map_each_cloned(|j| !j))
-            .make_widget()
+    let second_row = bone
+        .jointed
+        .clone()
+        .switcher(move |jointed, _| {
+            if *jointed {
+                joint_row.clone()
+            } else {
+                non_joint_row.clone()
+            }
+        })
+        .make_widget();
+
+    let first_row = if is_root {
+        WidgetList::new()
     } else {
-        bone.jointed
-            .clone()
-            .switcher(move |jointed, _| {
-                if *jointed {
-                    joint_row.clone()
-                } else {
-                    non_joint_row.clone()
-                }
-            })
-            .make_widget()
+        WidgetList::new().and(
+            "Joint Name"
+                .align_left()
+                .and(joint_label_editor)
+                .into_rows()
+                .fit_horizontally()
+                .align_top()
+                .expand(),
+        )
     };
 
-    "Joint Name"
-        .align_left()
-        .and(joint_label_editor)
-        .into_rows()
-        .fit_horizontally()
-        .align_top()
-        .expand()
+    first_row
         .and(
             "Bone Name"
                 .align_left()

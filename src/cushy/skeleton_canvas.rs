@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 use core::f32;
 
-use crate::{Angle, BoneEnd, BoneId, Coordinate, JointId, Skeleton, Vector};
+use crate::{Rotation, BoneEnd, BoneId, Coordinate, JointId, Skeleton, Vector};
 use cushy::{
     context::{EventContext, GraphicsContext, LayoutContext, Trackable},
     figures::{
@@ -430,5 +430,5 @@ struct DragInfo {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SkeletonMutation {
     SetDesiredEnd { bone: BoneId, end: Vector },
-    SetJointRotation { joint: JointId, rotation: Angle },
+    SetJointRotation { joint: JointId, rotation: Rotation },
 }

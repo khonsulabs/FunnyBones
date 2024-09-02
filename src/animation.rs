@@ -11,7 +11,7 @@ use std::{
 
 use easing_function::easings::StandardEasing;
 
-use crate::{Angle, Bone, BoneId, Coordinate, Joint, JointId, Skeleton, Vector};
+use crate::{Rotation, Bone, BoneId, Coordinate, Joint, JointId, Skeleton, Vector};
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Animation(Arc<AnimationData>);
@@ -258,7 +258,7 @@ impl BoneProperty {
         match self {
             BoneProperty::Target => Value::Vector(
                 bone.desired_end()
-                    .unwrap_or_else(|| Vector::new(bone.kind().full_length(), Angle::default())),
+                    .unwrap_or_else(|| Vector::new(bone.kind().full_length(), Rotation::default())),
             ),
             // BoneProperty::Scale => ,
             BoneProperty::Inverse => Value::Bool(bone.kind().is_inverse()),
@@ -303,7 +303,7 @@ impl JointProperty {
                 let Value::Number(value) = value else {
                     return;
                 };
-                joint.set_angle(Angle::radians(value));
+                joint.set_angle(Rotation::radians(value));
             }
         }
     }
@@ -566,7 +566,7 @@ impl Lerp for Coordinate {
     }
 }
 
-impl Lerp for Angle {
+impl Lerp for Rotation {
     fn lerp(self, target: Self, percent: f32) -> Self {
         let delta_neg = self.radians - target.radians;
         let delta_pos = target.radians - self.radians;
@@ -613,7 +613,7 @@ fn basic() {
     let mut skeleton = Skeleton::default();
     let root = skeleton.push_bone(BoneKind::Rigid { length: 1. });
     let arm = skeleton.push_bone(BoneKind::Rigid { length: 1. });
-    let joint = skeleton.push_joint(Joint::new(Angle::default(), root.axis_b(), arm.axis_a()));
+    let joint = skeleton.push_joint(Joint::new(Rotation::default(), root.axis_b(), arm.axis_a()));
 
     let animation = Animation::default().with(
         Timeline::new(Target::Joint {

@@ -1,21 +1,21 @@
 //! Widgets for editing and rendering skeletons.
 
 use cushy::{
-    animation::{LinearInterpolate, PercentBetween},
+    animation::{LinearInterpolate, PercentBetween, ZeroToOne},
     figures::{IntoComponents, Ranged},
 };
 
-use crate::{Angle, Coordinate, Vector};
+use crate::{Angle, Coordinate, Rotation, Vector};
 
 pub mod skeleton_canvas;
 
-impl PercentBetween for Angle {
-    fn percent_between(&self, min: &Self, max: &Self) -> cushy::animation::ZeroToOne {
+impl PercentBetween for Rotation {
+    fn percent_between(&self, min: &Self, max: &Self) -> ZeroToOne {
         self.radians.percent_between(&min.radians, &max.radians)
     }
 }
 
-impl LinearInterpolate for Angle {
+impl LinearInterpolate for Rotation {
     fn lerp(&self, target: &Self, percent: f32) -> Self {
         Self {
             radians: self.radians.lerp(&target.radians, percent),
@@ -47,4 +47,16 @@ impl cushy::figures::FromComponents<f32> for Coordinate {
 impl Ranged for Angle {
     const MIN: Self = Self::MIN;
     const MAX: Self = Self::MAX;
+}
+
+impl PercentBetween for Angle {
+    fn percent_between(&self, min: &Self, max: &Self) -> ZeroToOne {
+        self.0.percent_between(&min.0, &max.0)
+    }
+}
+
+impl LinearInterpolate for Angle {
+    fn lerp(&self, target: &Self, percent: f32) -> Self {
+        Self(self.0.lerp(&target.0, percent).clamped())
+    }
 }
