@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Mode"],"fn":["add_bones_to_skeleton","bone_editor","bone_property_editor","bones_editor","main","skeleton_editor"],"struct":["EditingSkeleton","SkeletalBone"]};
+window.SIDEBAR_ITEMS = {"enum":["ReadError","SaveError"],"fn":["add_bones_to_skeleton","bone_editor","bone_property_editor","bones_editor","main","main_menu_window","open_file","save","save_as","skeleton_editor","skeleton_window"],"struct":["EditingSkeleton","SerializedBone","SerializedSkeleton","SkeletalBone"]};
