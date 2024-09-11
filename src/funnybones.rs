@@ -1,24 +1,179 @@
 //! The FunnyBones 2D Animation Editor.
 
-use std::ops::ControlFlow;
+use std::{
+    fmt::Display,
+    fs,
+    io::{self, BufWriter},
+    ops::ControlFlow,
+    path::{Path, PathBuf},
+};
 
 use cushy::{
     animation::ZeroToOne,
+    kludgine::app::winit::keyboard::ModifiersState,
     value::{Destination, Dynamic, DynamicRead, Source, Switchable, Watcher},
-    widget::{MakeWidget, WidgetList},
+    widget::{MakeWidget, SharedCallback, WidgetList, HANDLED},
     widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
-    Run,
+    window::{MakeWindow, PendingWindow, Window},
+    App, Application, ModifiersStateExt, Open, PendingApp, WithClone,
 };
 use funnybones::{
     cushy::skeleton_canvas::{SkeletonCanvas, SkeletonMutation},
     Angle, BoneAxis, BoneId, BoneKind, Joint, JointId, LabeledBoneKind, Rotation, Skeleton, Vector,
 };
+use serde::{Deserialize, Serialize};
+use tempfile::{NamedTempFile, PersistError};
 
-#[derive(Default, Eq, PartialEq, Debug, Clone, Copy)]
-enum Mode {
-    #[default]
-    Bones,
-    Animation,
+fn main() -> cushy::Result {
+    let pending_app = PendingApp::default();
+
+    main_menu_window(&pending_app).run_centered_in(pending_app)
+}
+
+fn skeleton_window(path: Option<PathBuf>) -> Window {
+    let editing_skeleton = if let Some(path) = path.as_ref() {
+        match EditingSkeleton::read_from(path) {
+            Ok(skeleton) => skeleton,
+            Err(err) => return err.to_string().centered().pad().into_window(),
+        }
+    } else {
+        EditingSkeleton::default()
+    };
+    let path = Dynamic::new(path);
+    let watcher = Watcher::default();
+    let skeleton = watcher.map_changed({
+        let editing_skeleton = editing_skeleton.clone();
+        move || {
+            let mut skeleton = Skeleton::default();
+            skeleton.set_rotation(editing_skeleton.root.joint_angle.get().into());
+            let (kind, _vector) = editing_skeleton.root.as_bone_kind();
+            let root = skeleton.push_bone(kind);
+
+            add_bones_to_skeleton(
+                root.axis_b(),
+                &editing_skeleton.root.connected_bones,
+                &mut skeleton,
+            );
+            add_bones_to_skeleton(root.axis_a(), &editing_skeleton.a_bones, &mut skeleton);
+            skeleton
+        }
+    });
+    let bones_editor = skeleton_editor(&editing_skeleton, &watcher).make_widget();
+
+    let canvas = SkeletonCanvas::new(skeleton).on_mutate({
+        let editing_skeleton = editing_skeleton.clone();
+        move |mutation| match mutation {
+            SkeletonMutation::SetDesiredEnd { bone, end } => {
+                let bone = editing_skeleton.find_bone(bone).expect("missing bone");
+                bone.desired_length.set(end.magnitude);
+                bone.joint_angle.set(end.direction.into());
+            }
+            SkeletonMutation::SetJointRotation { joint, rotation } => editing_skeleton
+                .find_joint(joint)
+                .expect("missing joint")
+                .joint_angle
+                .set(rotation.into()),
+        }
+    });
+    let zoom = canvas
+        .scale()
+        .clone()
+        .slider_between(canvas.minimum_scale(), canvas.maximum_scale());
+
+    let on_error = SharedCallback::new(|err: SaveError| {
+        todo!("show {err}");
+    });
+
+    bones_editor
+        .expand()
+        .and(canvas.expand().and(zoom).into_rows().expand())
+        .into_columns()
+        .with_shortcut("s", ModifiersState::PRIMARY, {
+            (&path, &editing_skeleton, &on_error).with_clone(
+                |(path, editing_skeleton, on_error)| {
+                    move |_| {
+                        if let Err(err) = save(&path, &editing_skeleton, &on_error) {
+                            on_error.invoke(err);
+                        }
+                        HANDLED
+                    }
+                },
+            )
+        })
+        .with_shortcut("s", ModifiersState::PRIMARY | ModifiersState::SHIFT, {
+            move |_| {
+                save_as(&path, &editing_skeleton, &on_error);
+                HANDLED
+            }
+        })
+        .into_window()
+}
+
+fn save(
+    path: &Dynamic<Option<PathBuf>>,
+    skeleton: &EditingSkeleton,
+    on_error: &SharedCallback<SaveError>,
+) -> Result<(), SaveError> {
+    let current_path = path.read();
+    if let Some(path) = &*current_path {
+        skeleton.write_to(path)
+    } else {
+        save_as(path, skeleton, on_error);
+        Ok(())
+    }
+}
+
+fn save_as(
+    path: &Dynamic<Option<PathBuf>>,
+    skeleton: &EditingSkeleton,
+    on_error: &SharedCallback<SaveError>,
+) {
+    (path, skeleton, on_error).with_clone(|(path, skeleton, on_error)| {
+        std::thread::spawn(move || {
+            if let Some(new_path) = rfd::FileDialog::new()
+                .add_filter("FunnyBones Skeleton (.fbs)", &["fbs"])
+                .save_file()
+            {
+                match skeleton.write_to(&new_path) {
+                    Ok(()) => {
+                        path.set(Some(new_path));
+                    }
+                    Err(err) => on_error.invoke(err),
+                }
+            }
+        });
+    });
+}
+
+fn main_menu_window(app: &impl Application) -> Window {
+    let window = PendingWindow::default();
+    let handle = window.handle();
+
+    window
+        .with_root(
+            "New Skeleton"
+                .into_button()
+                .on_click({
+                    let mut app = app.as_app();
+                    let handle = handle.clone();
+                    move |_| {
+                        let _ = skeleton_window(None).open(&mut app);
+                        handle.request_close();
+                    }
+                })
+                .and("New Animation".into_button())
+                .and("Open Existing...".into_button().on_click({
+                    let mut app = app.as_app();
+                    move |_| {
+                        open_file(&mut app);
+                        handle.request_close();
+                    }
+                }))
+                .into_rows()
+                .pad(),
+        )
+        .resize_to_fit(true)
+        .resizable(false)
 }
 
 fn add_bones_to_skeleton(
@@ -43,66 +198,77 @@ fn add_bones_to_skeleton(
     }
 }
 
-fn main() -> cushy::Result {
-    let editing_skeleton = EditingSkeleton::default();
-    let watcher = Watcher::default();
-    let skeleton = watcher.map_changed({
-        let editing_skeleton = editing_skeleton.clone();
-        move || {
-            let mut skeleton = Skeleton::default();
-            skeleton.set_rotation(editing_skeleton.root.joint_angle.get().into());
-            let (kind, _vector) = editing_skeleton.root.as_bone_kind();
-            let root = skeleton.push_bone(kind);
+#[derive(Serialize, Deserialize, Debug)]
+struct SerializedSkeleton {
+    root: SerializedBone,
+    a_bones: Vec<SerializedBone>,
+}
 
-            add_bones_to_skeleton(
-                root.axis_b(),
-                &editing_skeleton.root.connected_bones,
-                &mut skeleton,
-            );
-            add_bones_to_skeleton(root.axis_a(), &editing_skeleton.a_bones, &mut skeleton);
-            skeleton
+#[derive(Serialize, Deserialize, Debug)]
+struct SerializedBone {
+    label: String,
+    joint_label: String,
+    joint_angle: Angle,
+    length: f32,
+    jointed: bool,
+    joint_ratio: ZeroToOne,
+    inverse: bool,
+    desired_length: f32,
+    connected_bones: Vec<SerializedBone>,
+}
+
+#[derive(Debug)]
+enum ReadError {
+    Io(io::Error),
+    Rsn(rsn::de::Error),
+}
+
+impl From<io::Error> for ReadError {
+    fn from(value: io::Error) -> Self {
+        Self::Io(value)
+    }
+}
+
+impl From<rsn::de::Error> for ReadError {
+    fn from(value: rsn::de::Error) -> Self {
+        Self::Rsn(value)
+    }
+}
+
+impl Display for ReadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ReadError::Io(err) => Display::fmt(err, f),
+            ReadError::Rsn(err) => Display::fmt(err, f),
         }
-    });
-    let bones_editor = skeleton_editor(&editing_skeleton, &watcher).make_widget();
+    }
+}
 
-    let mode = Dynamic::<Mode>::default();
-    let canvas = SkeletonCanvas::new(skeleton).on_mutate({
-        move |mutation| match mutation {
-            SkeletonMutation::SetDesiredEnd { bone, end } => {
-                let bone = editing_skeleton.find_bone(bone).expect("missing bone");
-                bone.desired_length.set(end.magnitude);
-                bone.joint_angle.set(end.direction.into());
-            }
-            SkeletonMutation::SetJointRotation { joint, rotation } => editing_skeleton
-                .find_joint(joint)
-                .expect("missing joint")
-                .joint_angle
-                .set(rotation.into()),
+#[derive(Debug)]
+enum SaveError {
+    Io(io::Error),
+    InvalidPath,
+}
+
+impl From<io::Error> for SaveError {
+    fn from(err: io::Error) -> Self {
+        Self::Io(err)
+    }
+}
+
+impl From<PersistError> for SaveError {
+    fn from(err: PersistError) -> Self {
+        Self::Io(err.error)
+    }
+}
+
+impl Display for SaveError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SaveError::Io(err) => Display::fmt(err, f),
+            SaveError::InvalidPath => f.write_str("invalid file path"),
         }
-    });
-    let zoom = canvas
-        .scale()
-        .clone()
-        .slider_between(canvas.minimum_scale(), canvas.maximum_scale());
-
-    [(Mode::Bones, "Bones"), (Mode::Animation, "Animation")]
-        .into_iter()
-        .map(|(selected, label)| mode.new_select(selected, label))
-        .collect::<WidgetList>()
-        .into_columns()
-        .centered()
-        .and(
-            mode.switcher(move |mode, _mode_dynamic| match mode {
-                Mode::Animation => "Animation Editor".make_widget(),
-                Mode::Bones => bones_editor.clone(),
-            })
-            .expand(),
-        )
-        .into_rows()
-        .expand()
-        .and(canvas.expand().and(zoom).into_rows().expand())
-        .into_columns()
-        .run()
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -112,6 +278,26 @@ struct EditingSkeleton {
 }
 
 impl EditingSkeleton {
+    fn read_from(path: &Path) -> Result<Self, ReadError> {
+        let contents = fs::read(path)?;
+        let skeleton = rsn::from_slice::<SerializedSkeleton>(&contents)?;
+        Ok(Self::from(skeleton))
+    }
+
+    fn write_to(&self, path: &Path) -> Result<(), SaveError> {
+        let skeleton = SerializedSkeleton::from(self);
+        let parent = path.parent().ok_or(SaveError::InvalidPath)?;
+        let mut temp_file = NamedTempFile::new_in(parent)?;
+        let mut writer = BufWriter::new(temp_file.as_file_mut());
+        rsn::ser::Config::pretty().serialize_to_writer(&skeleton, &mut writer)?;
+        writer
+            .into_inner()
+            .map_err(io::IntoInnerError::into_error)?;
+        temp_file.persist(path)?;
+
+        Ok(())
+    }
+
     fn find_bone(&self, id: BoneId) -> Option<SkeletalBone> {
         let mut index = id.index();
         if index == 0 {
@@ -174,6 +360,32 @@ impl EditingSkeleton {
     }
 }
 
+impl From<&'_ EditingSkeleton> for SerializedSkeleton {
+    fn from(skeleton: &'_ EditingSkeleton) -> Self {
+        Self {
+            root: SerializedBone::from(&skeleton.root),
+            a_bones: skeleton
+                .a_bones
+                .map_ref(|bones| bones.iter().map(SerializedBone::from).collect()),
+        }
+    }
+}
+
+impl From<SerializedSkeleton> for EditingSkeleton {
+    fn from(skeleton: SerializedSkeleton) -> Self {
+        Self {
+            root: SkeletalBone::from(skeleton.root),
+            a_bones: Dynamic::new(
+                skeleton
+                    .a_bones
+                    .into_iter()
+                    .map(SkeletalBone::from)
+                    .collect(),
+            ),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 struct SkeletalBone {
     label: Dynamic<String>,
@@ -230,6 +442,42 @@ impl Default for SkeletalBone {
             inverse: Dynamic::default(),
             desired_length: Dynamic::default(),
             connected_bones: Dynamic::default(),
+        }
+    }
+}
+
+impl From<&'_ SkeletalBone> for SerializedBone {
+    fn from(bone: &'_ SkeletalBone) -> Self {
+        Self {
+            label: bone.label.get(),
+            joint_label: bone.joint_label.get(),
+            joint_angle: bone.joint_angle.get(),
+            length: bone.length.get(),
+            jointed: bone.jointed.get(),
+            joint_ratio: bone.joint_ratio.get(),
+            inverse: bone.inverse.get(),
+            desired_length: bone.desired_length.get(),
+            connected_bones: bone
+                .connected_bones
+                .map_ref(|bones| bones.iter().map(Self::from).collect()),
+        }
+    }
+}
+
+impl From<SerializedBone> for SkeletalBone {
+    fn from(bone: SerializedBone) -> Self {
+        Self {
+            label: Dynamic::new(bone.label),
+            joint_label: Dynamic::new(bone.joint_label),
+            joint_angle: Dynamic::new(bone.joint_angle),
+            length: Dynamic::new(bone.length),
+            jointed: Dynamic::new(bone.jointed),
+            joint_ratio: Dynamic::new(bone.joint_ratio),
+            inverse: Dynamic::new(bone.inverse),
+            desired_length: Dynamic::new(bone.desired_length),
+            connected_bones: Dynamic::new(
+                bone.connected_bones.into_iter().map(Self::from).collect(),
+            ),
         }
     }
 }
@@ -418,4 +666,17 @@ fn bone_property_editor(bone: SkeletalBone, watcher: &Watcher, is_root: bool) ->
         .into_columns()
         .and(second_row)
         .into_rows()
+}
+
+fn open_file(app: &mut App) {
+    if let Some(file) = rfd::FileDialog::new()
+        .add_filter("FunnyBones Skeleton (.fbs)", &["fbs"])
+        .pick_file()
+    {
+        if file.extension().map_or(false, |ext| ext == "fbs") {
+            let _ = skeleton_window(Some(file)).open(app);
+        } else {
+            todo!("unknown file type");
+        }
+    }
 }

@@ -107,6 +107,7 @@ impl Div<f32> for Coordinate {
 
 /// A value representing a rotation between 0. and `2π`.
 #[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Default)]
+#[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
 pub struct Angle(Rotation);
 
 impl Angle {
@@ -138,6 +139,12 @@ impl From<Angle> for Rotation {
 impl From<Rotation> for Angle {
     fn from(value: Rotation) -> Self {
         Self(value.clamped())
+    }
+}
+
+impl Display for Angle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self.0, f)
     }
 }
 
