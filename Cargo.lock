@@ -108,14 +108,14 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.87"
+version = "1.0.88"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10f00e1f6e58a40e807377c75c6a7f97bf9044fab57816f2414e6f5f4499d7b8"
+checksum = "4e1496f8fb1fbf272686b8d37f523dab3e4a7443300055e74cdaa449f3114356"
 
 [[package]]
 name = "appit"
 version = "0.3.2"
-source = "git+https://github.com/khonsulabs/appit#6c59e6942fdeecf8405f0b0ee1098aeb4bef9e60"
+source = "git+https://github.com/khonsulabs/appit#93479b81112dfeef2b1646c5050c9fbd305c3288"
 dependencies = [
  "winit",
 ]
@@ -844,7 +844,7 @@ checksum = "96a6ac251f4a2aca6b3f91340350eab87ae57c3f127ffeb585e92bd336717991"
 [[package]]
 name = "cushy"
 version = "0.4.0"
-source = "git+https://github.com/khonsulabs/cushy#8eaf0f414f3c50e7f7fdee5ea1add39968ab7ac8"
+source = "git+https://github.com/khonsulabs/cushy#8d082ab77f462a9798739fe0ddc39476b79231e2"
 dependencies = [
  "ahash",
  "alot",
@@ -872,7 +872,7 @@ dependencies = [
 [[package]]
 name = "cushy-macros"
 version = "0.4.0"
-source = "git+https://github.com/khonsulabs/cushy#8eaf0f414f3c50e7f7fdee5ea1add39968ab7ac8"
+source = "git+https://github.com/khonsulabs/cushy#8d082ab77f462a9798739fe0ddc39476b79231e2"
 dependencies = [
  "attribute-derive",
  "manyhow",
@@ -1644,7 +1644,7 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 [[package]]
 name = "kludgine"
 version = "0.10.0"
-source = "git+https://github.com/khonsulabs/kludgine#7d2d0dae63ba14142cb5355f10cfff074659ae27"
+source = "git+https://github.com/khonsulabs/kludgine#04013453b631609cacb0edf79f08aa00715f7621"
 dependencies = [
  "ahash",
  "alot",
@@ -2407,7 +2407,7 @@ checksum = "1e401f977ab385c9e4e3ab30627d6f26d00e2c73eef317493c4ec6d468726cf8"
 dependencies = [
  "cfg-if",
  "libc",
- "redox_syscall 0.5.3",
+ "redox_syscall 0.5.4",
  "smallvec",
  "windows-targets 0.52.6",
 ]
@@ -2816,9 +2816,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.3"
+version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a908a6e00f1fdd0dfd9c0eb08ce85126f6d8bbda50017e74bc4a4b7d4a926a4"
+checksum = "0884ad60e090bf1345b93da0a5de8923c93884cd03f40dfcfddd3b4bee661853"
 dependencies = [
  "bitflags 2.6.0",
 ]
@@ -2929,9 +2929,9 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustix"
-version = "0.38.36"
+version = "0.38.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f55e80d50763938498dd5ebb18647174e0c76dc38c5505294bb224624f30f36"
+checksum = "8acb788b847c24f28525660c4d7758620a7210875711f79e7f663cc152726811"
 dependencies = [
  "bitflags 2.6.0",
  "errno",

@@ -13,8 +13,8 @@ use cushy::{
     kludgine::app::winit::keyboard::ModifiersState,
     value::{Destination, Dynamic, DynamicRead, Source, Switchable, Watcher},
     widget::{MakeWidget, SharedCallback, WidgetList, HANDLED},
-    widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
-    window::{MakeWindow, PendingWindow, Window},
+    widgets::{checkbox::Checkable, input::InputValue, layers::Modal, slider::Slidable, Space},
+    window::{MakeWindow, PendingWindow, Window, WindowHandle},
     App, Application, ModifiersStateExt, Open, PendingApp, WithClone,
 };
 use funnybones::{
@@ -31,6 +31,7 @@ fn main() -> cushy::Result {
 }
 
 fn skeleton_window(path: Option<PathBuf>) -> Window {
+    let modals = Modal::new();
     let editing_skeleton = if let Some(path) = path.as_ref() {
         match EditingSkeleton::read_from(path) {
             Ok(skeleton) => skeleton,
@@ -85,14 +86,18 @@ fn skeleton_window(path: Option<PathBuf>) -> Window {
     });
 
     bones_editor
+        .vertical_scroll()
         .expand()
         .and(canvas.expand().and(zoom).into_rows().expand())
         .into_columns()
+        .expand()
+        .and(modals.clone())
+        .into_layers()
         .with_shortcut("s", ModifiersState::PRIMARY, {
-            (&path, &editing_skeleton, &on_error).with_clone(
-                |(path, editing_skeleton, on_error)| {
+            (&path, &editing_skeleton, &on_error, &modals).with_clone(
+                |(path, editing_skeleton, on_error, modals)| {
                     move |_| {
-                        if let Err(err) = save(&path, &editing_skeleton, &on_error) {
+                        if let Err(err) = save(&path, &editing_skeleton, &on_error, &modals) {
                             on_error.invoke(err);
                         }
                         HANDLED
@@ -102,7 +107,7 @@ fn skeleton_window(path: Option<PathBuf>) -> Window {
         })
         .with_shortcut("s", ModifiersState::PRIMARY | ModifiersState::SHIFT, {
             move |_| {
-                save_as(&path, &editing_skeleton, &on_error);
+                save_as(&path, &editing_skeleton, &on_error, &modals);
                 HANDLED
             }
         })
@@ -113,12 +118,13 @@ fn save(
     path: &Dynamic<Option<PathBuf>>,
     skeleton: &EditingSkeleton,
     on_error: &SharedCallback<SaveError>,
+    modals: &Modal,
 ) -> Result<(), SaveError> {
     let current_path = path.read();
     if let Some(path) = &*current_path {
         skeleton.write_to(path)
     } else {
-        save_as(path, skeleton, on_error);
+        save_as(path, skeleton, on_error, modals);
         Ok(())
     }
 }
@@ -127,13 +133,16 @@ fn save_as(
     path: &Dynamic<Option<PathBuf>>,
     skeleton: &EditingSkeleton,
     on_error: &SharedCallback<SaveError>,
+    modals: &Modal,
 ) {
-    (path, skeleton, on_error).with_clone(|(path, skeleton, on_error)| {
+    (path, skeleton, on_error, modals).with_clone(|(path, skeleton, on_error, modals)| {
         std::thread::spawn(move || {
-            if let Some(new_path) = rfd::FileDialog::new()
+            modals.present("Please dismiss the save file dialog to continue editing.");
+            let new_path = rfd::FileDialog::new()
                 .add_filter("FunnyBones Skeleton (.fbs)", &["fbs"])
-                .save_file()
-            {
+                .save_file();
+            modals.dismiss();
+            if let Some(new_path) = new_path {
                 match skeleton.write_to(&new_path) {
                     Ok(()) => {
                         path.set(Some(new_path));
@@ -148,6 +157,7 @@ fn save_as(
 fn main_menu_window(app: &impl Application) -> Window {
     let window = PendingWindow::default();
     let handle = window.handle();
+    let visible = Dynamic::new(true);
 
     window
         .with_root(
@@ -164,9 +174,11 @@ fn main_menu_window(app: &impl Application) -> Window {
                 .and("New Animation".into_button())
                 .and("Open Existing...".into_button().on_click({
                     let mut app = app.as_app();
+                    let handle = handle.clone();
+                    let visible = visible.clone();
                     move |_| {
-                        open_file(&mut app);
-                        handle.request_close();
+                        visible.set(false);
+                        open_file(&mut app, &handle, true);
                     }
                 }))
                 .into_rows()
@@ -174,6 +186,7 @@ fn main_menu_window(app: &impl Application) -> Window {
         )
         .resize_to_fit(true)
         .resizable(false)
+        .visible(visible)
 }
 
 fn add_bones_to_skeleton(
@@ -668,15 +681,26 @@ fn bone_property_editor(bone: SkeletalBone, watcher: &Watcher, is_root: bool) ->
         .into_rows()
 }
 
-fn open_file(app: &mut App) {
-    if let Some(file) = rfd::FileDialog::new()
-        .add_filter("FunnyBones Skeleton (.fbs)", &["fbs"])
-        .pick_file()
-    {
-        if file.extension().map_or(false, |ext| ext == "fbs") {
-            let _ = skeleton_window(Some(file)).open(app);
-        } else {
-            todo!("unknown file type");
+fn open_file(app: &mut App, parent_window: &WindowHandle, close: bool) {
+    parent_window.execute({
+        let mut app = app.clone();
+        let parent_window = parent_window.clone();
+        move |context| {
+            let dialog = rfd::FileDialog::new()
+                .add_filter("FunnyBones Skeleton (.fbs)", &["fbs"])
+                .set_parent(context.winit().expect("running on winit"));
+            std::thread::spawn(move || {
+                if let Some(file) = dialog.pick_file() {
+                    if file.extension().map_or(false, |ext| ext == "fbs") {
+                        let _ = skeleton_window(Some(file)).open(&mut app);
+                    } else {
+                        todo!("unknown file type");
+                    }
+                }
+                if close {
+                    parent_window.request_close();
+                }
+            });
         }
-    }
+    });
 }
