@@ -8,7 +8,7 @@ use cushy::{
     widget::{MakeWidget, SharedCallback, HANDLED},
     widgets::layers::Modal,
     window::{MakeWindow, PendingWindow, Window, WindowHandle},
-    App, Application, ModifiersStateExt, Open, PendingApp, WithClone,
+    App, Application, ModifiersStateExt, Open, PendingApp, ShutdownGuard, WithClone,
 };
 use funnybones::editor::{EditingSkeleton, SaveError};
 
@@ -30,8 +30,21 @@ fn skeleton_window(path: Option<PathBuf>) -> Window {
     };
     let path = Dynamic::new(path);
 
-    let on_error = SharedCallback::new(|err: SaveError| {
-        todo!("show {err}");
+    let on_error = SharedCallback::new({
+        let modals = modals.clone();
+        move |err: SaveError| {
+            modals.present(
+                format!("Error saving: {err}")
+                    .and("OK".into_button().on_click({
+                        let modals = modals.clone();
+                        move |_| {
+                            modals.dismiss();
+                        }
+                    }))
+                    .into_rows()
+                    .contain(),
+            );
+        }
     });
     let skeleton_editor = funnybones::editor::skeleton_editor(editing_skeleton.clone());
 
@@ -103,7 +116,6 @@ fn save_as(
 fn main_menu_window(app: &impl Application) -> Window {
     let window = PendingWindow::default();
     let handle = window.handle();
-    let visible = Dynamic::new(true);
 
     window
         .with_root(
@@ -113,18 +125,19 @@ fn main_menu_window(app: &impl Application) -> Window {
                     let mut app = app.as_app();
                     let handle = handle.clone();
                     move |_| {
-                        let _ = skeleton_window(None).open(&mut app);
+                        let _close_guard = app.prevent_shutdown();
                         handle.request_close();
+                        let _ = skeleton_window(None).open(&mut app);
                     }
                 })
                 .and("New Animation".into_button())
                 .and("Open Existing...".into_button().on_click({
                     let mut app = app.as_app();
                     let handle = handle.clone();
-                    let visible = visible.clone();
                     move |_| {
-                        visible.set(false);
-                        open_file(&mut app, &handle, true);
+                        let shutdown_guard = app.prevent_shutdown();
+                        open_file(&mut app, &handle, shutdown_guard);
+                        handle.request_close();
                     }
                 }))
                 .into_rows()
@@ -132,13 +145,11 @@ fn main_menu_window(app: &impl Application) -> Window {
         )
         .resize_to_fit(true)
         .resizable(false)
-        .visible(visible)
 }
 
-fn open_file(app: &mut App, parent_window: &WindowHandle, close: bool) {
+fn open_file(app: &mut App, parent_window: &WindowHandle, close_guard: Option<ShutdownGuard>) {
     parent_window.execute({
         let mut app = app.clone();
-        let parent_window = parent_window.clone();
         move |context| {
             let dialog = rfd::FileDialog::new()
                 .add_filter("FunnyBones Skeleton (.fbs)", &["fbs"])
@@ -151,9 +162,7 @@ fn open_file(app: &mut App, parent_window: &WindowHandle, close: bool) {
                         todo!("unknown file type");
                     }
                 }
-                if close {
-                    parent_window.request_close();
-                }
+                drop(close_guard);
             });
         }
     });

@@ -115,7 +115,7 @@ checksum = "4e1496f8fb1fbf272686b8d37f523dab3e4a7443300055e74cdaa449f3114356"
 [[package]]
 name = "appit"
 version = "0.3.2"
-source = "git+https://github.com/khonsulabs/appit#93479b81112dfeef2b1646c5050c9fbd305c3288"
+source = "git+https://github.com/khonsulabs/appit#331bfdd3534a2f6a7c44f24017b4d52aee40da5b"
 dependencies = [
  "winit",
 ]
@@ -137,9 +137,9 @@ checksum = "7d5a26814d8dcb93b0e5a0ff3c6d80a8843bafb21b39e8e18a6f05471870e110"
 
 [[package]]
 name = "arboard"
-version = "3.4.0"
+version = "3.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fb4009533e8ff8f1450a5bcbc30f4242a1d34442221f72314bea1f5dc9c7f89"
+checksum = "df099ccb16cd014ff054ac1bf392c67feeef57164b05c42f037cd40f5d4357f4"
 dependencies = [
  "clipboard-win",
  "core-graphics",
@@ -844,7 +844,7 @@ checksum = "96a6ac251f4a2aca6b3f91340350eab87ae57c3f127ffeb585e92bd336717991"
 [[package]]
 name = "cushy"
 version = "0.4.0"
-source = "git+https://github.com/khonsulabs/cushy#8d082ab77f462a9798739fe0ddc39476b79231e2"
+source = "git+https://github.com/khonsulabs/cushy#2f387c9845b7565db4e2f29d205cc6d8754ad603"
 dependencies = [
  "ahash",
  "alot",
@@ -872,7 +872,7 @@ dependencies = [
 [[package]]
 name = "cushy-macros"
 version = "0.4.0"
-source = "git+https://github.com/khonsulabs/cushy#8d082ab77f462a9798739fe0ddc39476b79231e2"
+source = "git+https://github.com/khonsulabs/cushy#2f387c9845b7565db4e2f29d205cc6d8754ad603"
 dependencies = [
  "attribute-derive",
  "manyhow",
@@ -1644,7 +1644,7 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 [[package]]
 name = "kludgine"
 version = "0.10.0"
-source = "git+https://github.com/khonsulabs/kludgine#04013453b631609cacb0edf79f08aa00715f7621"
+source = "git+https://github.com/khonsulabs/kludgine#eb700333d12b201b0e6af2396898839b2f7a04a8"
 dependencies = [
  "ahash",
  "alot",
