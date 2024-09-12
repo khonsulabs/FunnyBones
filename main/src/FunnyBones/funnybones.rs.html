@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/funnybones.rs`."><title>funnybones.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-405f8b29f52305f8.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="FunnyBones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0-nightly (0ee7cb5e3 2024-09-10)" data-channel="nightly" data-search-js="search-0cfde64e8ad3a7fe.js" data-settings-js="settings-7e3bb6c46e92e77c.js" ><script src="../../static.files/storage-29b1d5a9048d38fe.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-14659ec02b58af51.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-40f72c9259523cb3.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/funnybones.rs`."><title>funnybones.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-405f8b29f52305f8.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="FunnyBones" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0-nightly (8d6b88b16 2024-09-11)" data-channel="nightly" data-search-js="search-0cfde64e8ad3a7fe.js" data-settings-js="settings-7e3bb6c46e92e77c.js" ><script src="../../static.files/storage-29b1d5a9048d38fe.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-14659ec02b58af51.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-40f72c9259523cb3.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -680,7 +680,31 @@
 <a href="#679" id="679">679</a>
 <a href="#680" id="680">680</a>
 <a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a></pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a></pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
 
 </span><span class="kw">use </span>std::{
     fmt::Display,
@@ -695,8 +719,8 @@
     kludgine::app::winit::keyboard::ModifiersState,
     value::{Destination, Dynamic, DynamicRead, Source, Switchable, Watcher},
     widget::{MakeWidget, SharedCallback, WidgetList, HANDLED},
-    widgets::{checkbox::Checkable, input::InputValue, slider::Slidable, Space},
-    window::{MakeWindow, PendingWindow, Window},
+    widgets::{checkbox::Checkable, input::InputValue, layers::Modal, slider::Slidable, Space},
+    window::{MakeWindow, PendingWindow, Window, WindowHandle},
     App, Application, ModifiersStateExt, Open, PendingApp, WithClone,
 };
 <span class="kw">use </span>funnybones::{
@@ -713,6 +737,7 @@
 }
 
 <span class="kw">fn </span>skeleton_window(path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;) -&gt; Window {
+    <span class="kw">let </span>modals = Modal::new();
     <span class="kw">let </span>editing_skeleton = <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = path.as_ref() {
         <span class="kw">match </span>EditingSkeleton::read_from(path) {
             <span class="prelude-val">Ok</span>(skeleton) =&gt; skeleton,
@@ -767,14 +792,18 @@
     });
 
     bones_editor
+        .vertical_scroll()
         .expand()
         .and(canvas.expand().and(zoom).into_rows().expand())
         .into_columns()
+        .expand()
+        .and(modals.clone())
+        .into_layers()
         .with_shortcut(<span class="string">"s"</span>, ModifiersState::PRIMARY, {
-            (<span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>on_error).with_clone(
-                |(path, editing_skeleton, on_error)| {
+            (<span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>on_error, <span class="kw-2">&amp;</span>modals).with_clone(
+                |(path, editing_skeleton, on_error, modals)| {
                     <span class="kw">move </span>|<span class="kw">_</span>| {
-                        <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = save(<span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>on_error) {
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = save(<span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>on_error, <span class="kw-2">&amp;</span>modals) {
                             on_error.invoke(err);
                         }
                         HANDLED
@@ -784,7 +813,7 @@
         })
         .with_shortcut(<span class="string">"s"</span>, ModifiersState::PRIMARY | ModifiersState::SHIFT, {
             <span class="kw">move </span>|<span class="kw">_</span>| {
-                save_as(<span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>on_error);
+                save_as(<span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>editing_skeleton, <span class="kw-2">&amp;</span>on_error, <span class="kw-2">&amp;</span>modals);
                 HANDLED
             }
         })
@@ -795,12 +824,13 @@
     path: <span class="kw-2">&amp;</span>Dynamic&lt;<span class="prelude-ty">Option</span>&lt;PathBuf&gt;&gt;,
     skeleton: <span class="kw-2">&amp;</span>EditingSkeleton,
     on_error: <span class="kw-2">&amp;</span>SharedCallback&lt;SaveError&gt;,
+    modals: <span class="kw-2">&amp;</span>Modal,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SaveError&gt; {
     <span class="kw">let </span>current_path = path.read();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;*</span>current_path {
         skeleton.write_to(path)
     } <span class="kw">else </span>{
-        save_as(path, skeleton, on_error);
+        save_as(path, skeleton, on_error, modals);
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -809,13 +839,16 @@
     path: <span class="kw-2">&amp;</span>Dynamic&lt;<span class="prelude-ty">Option</span>&lt;PathBuf&gt;&gt;,
     skeleton: <span class="kw-2">&amp;</span>EditingSkeleton,
     on_error: <span class="kw-2">&amp;</span>SharedCallback&lt;SaveError&gt;,
+    modals: <span class="kw-2">&amp;</span>Modal,
 ) {
-    (path, skeleton, on_error).with_clone(|(path, skeleton, on_error)| {
+    (path, skeleton, on_error, modals).with_clone(|(path, skeleton, on_error, modals)| {
         std::thread::spawn(<span class="kw">move </span>|| {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(new_path) = rfd::FileDialog::new()
+            modals.present(<span class="string">"Please dismiss the save file dialog to continue editing."</span>);
+            <span class="kw">let </span>new_path = rfd::FileDialog::new()
                 .add_filter(<span class="string">"FunnyBones Skeleton (.fbs)"</span>, <span class="kw-2">&amp;</span>[<span class="string">"fbs"</span>])
-                .save_file()
-            {
+                .save_file();
+            modals.dismiss();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(new_path) = new_path {
                 <span class="kw">match </span>skeleton.write_to(<span class="kw-2">&amp;</span>new_path) {
                     <span class="prelude-val">Ok</span>(()) =&gt; {
                         path.set(<span class="prelude-val">Some</span>(new_path));
@@ -830,6 +863,7 @@
 <span class="kw">fn </span>main_menu_window(app: <span class="kw-2">&amp;</span><span class="kw">impl </span>Application) -&gt; Window {
     <span class="kw">let </span>window = PendingWindow::default();
     <span class="kw">let </span>handle = window.handle();
+    <span class="kw">let </span>visible = Dynamic::new(<span class="bool-val">true</span>);
 
     window
         .with_root(
@@ -846,9 +880,11 @@
                 .and(<span class="string">"New Animation"</span>.into_button())
                 .and(<span class="string">"Open Existing..."</span>.into_button().on_click({
                     <span class="kw">let </span><span class="kw-2">mut </span>app = app.as_app();
+                    <span class="kw">let </span>handle = handle.clone();
+                    <span class="kw">let </span>visible = visible.clone();
                     <span class="kw">move </span>|<span class="kw">_</span>| {
-                        open_file(<span class="kw-2">&amp;mut </span>app);
-                        handle.request_close();
+                        visible.set(<span class="bool-val">false</span>);
+                        open_file(<span class="kw-2">&amp;mut </span>app, <span class="kw-2">&amp;</span>handle, <span class="bool-val">true</span>);
                     }
                 }))
                 .into_rows()
@@ -856,6 +892,7 @@
         )
         .resize_to_fit(<span class="bool-val">true</span>)
         .resizable(<span class="bool-val">false</span>)
+        .visible(visible)
 }
 
 <span class="kw">fn </span>add_bones_to_skeleton(
@@ -1350,16 +1387,27 @@
         .into_rows()
 }
 
-<span class="kw">fn </span>open_file(app: <span class="kw-2">&amp;mut </span>App) {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = rfd::FileDialog::new()
-        .add_filter(<span class="string">"FunnyBones Skeleton (.fbs)"</span>, <span class="kw-2">&amp;</span>[<span class="string">"fbs"</span>])
-        .pick_file()
-    {
-        <span class="kw">if </span>file.extension().map_or(<span class="bool-val">false</span>, |ext| ext == <span class="string">"fbs"</span>) {
-            <span class="kw">let _ </span>= skeleton_window(<span class="prelude-val">Some</span>(file)).open(app);
-        } <span class="kw">else </span>{
-            <span class="macro">todo!</span>(<span class="string">"unknown file type"</span>);
+<span class="kw">fn </span>open_file(app: <span class="kw-2">&amp;mut </span>App, parent_window: <span class="kw-2">&amp;</span>WindowHandle, close: bool) {
+    parent_window.execute({
+        <span class="kw">let </span><span class="kw-2">mut </span>app = app.clone();
+        <span class="kw">let </span>parent_window = parent_window.clone();
+        <span class="kw">move </span>|context| {
+            <span class="kw">let </span>dialog = rfd::FileDialog::new()
+                .add_filter(<span class="string">"FunnyBones Skeleton (.fbs)"</span>, <span class="kw-2">&amp;</span>[<span class="string">"fbs"</span>])
+                .set_parent(context.winit().expect(<span class="string">"running on winit"</span>));
+            std::thread::spawn(<span class="kw">move </span>|| {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = dialog.pick_file() {
+                    <span class="kw">if </span>file.extension().map_or(<span class="bool-val">false</span>, |ext| ext == <span class="string">"fbs"</span>) {
+                        <span class="kw">let _ </span>= skeleton_window(<span class="prelude-val">Some</span>(file)).open(<span class="kw-2">&amp;mut </span>app);
+                    } <span class="kw">else </span>{
+                        <span class="macro">todo!</span>(<span class="string">"unknown file type"</span>);
+                    }
+                }
+                <span class="kw">if </span>close {
+                    parent_window.request_close();
+                }
+            });
         }
-    }
+    });
 }
 </code></pre></div></section></main></body></html>
