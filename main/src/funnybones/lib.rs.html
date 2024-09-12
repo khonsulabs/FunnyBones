@@ -1042,7 +1042,9 @@
 <a href="#1041" id="1041">1041</a>
 <a href="#1042" id="1042">1042</a>
 <a href="#1043" id="1043">1043</a>
-<a href="#1044" id="1044">1044</a></pre></div><pre class="rust"><code><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">".crate-docs.md"</span>)]
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a></pre></div><pre class="rust"><code><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">".crate-docs.md"</span>)]
 
 </span><span class="kw">use </span>std::{
     borrow::Borrow,
@@ -1057,6 +1059,8 @@
 <span class="kw">pub mod </span>animation;
 <span class="attr">#[cfg(feature = <span class="string">"cushy"</span>)]
 </span><span class="kw">pub mod </span>cushy;
+<span class="attr">#[cfg(feature = <span class="string">"editor"</span>)]
+</span><span class="kw">pub mod </span>editor;
 <span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">mod </span>serde;
 
