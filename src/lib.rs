@@ -13,6 +13,8 @@ use std::{
 pub mod animation;
 #[cfg(feature = "cushy")]
 pub mod cushy;
+#[cfg(feature = "editor")]
+pub mod editor;
 #[cfg(feature = "serde")]
 mod serde;
 
