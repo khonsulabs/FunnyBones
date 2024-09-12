@@ -158,7 +158,16 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a></pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a></pre></div><pre class="rust"><code><span class="doccomment">//! The FunnyBones 2D Animation Editor.
 
 </span><span class="kw">use </span>std::path::PathBuf;
 
@@ -168,7 +177,7 @@
     widget::{MakeWidget, SharedCallback, HANDLED},
     widgets::layers::Modal,
     window::{MakeWindow, PendingWindow, Window, WindowHandle},
-    App, Application, ModifiersStateExt, Open, PendingApp, WithClone,
+    App, Application, ModifiersStateExt, Open, PendingApp, ShutdownGuard, WithClone,
 };
 <span class="kw">use </span>funnybones::editor::{EditingSkeleton, SaveError};
 
@@ -190,8 +199,21 @@
     };
     <span class="kw">let </span>path = Dynamic::new(path);
 
-    <span class="kw">let </span>on_error = SharedCallback::new(|err: SaveError| {
-        <span class="macro">todo!</span>(<span class="string">"show {err}"</span>);
+    <span class="kw">let </span>on_error = SharedCallback::new({
+        <span class="kw">let </span>modals = modals.clone();
+        <span class="kw">move </span>|err: SaveError| {
+            modals.present(
+                <span class="macro">format!</span>(<span class="string">"Error saving: {err}"</span>)
+                    .and(<span class="string">"OK"</span>.into_button().on_click({
+                        <span class="kw">let </span>modals = modals.clone();
+                        <span class="kw">move </span>|<span class="kw">_</span>| {
+                            modals.dismiss();
+                        }
+                    }))
+                    .into_rows()
+                    .contain(),
+            );
+        }
     });
     <span class="kw">let </span>skeleton_editor = funnybones::editor::skeleton_editor(editing_skeleton.clone());
 
@@ -263,7 +285,6 @@
 <span class="kw">fn </span>main_menu_window(app: <span class="kw-2">&amp;</span><span class="kw">impl </span>Application) -&gt; Window {
     <span class="kw">let </span>window = PendingWindow::default();
     <span class="kw">let </span>handle = window.handle();
-    <span class="kw">let </span>visible = Dynamic::new(<span class="bool-val">true</span>);
 
     window
         .with_root(
@@ -273,18 +294,19 @@
                     <span class="kw">let </span><span class="kw-2">mut </span>app = app.as_app();
                     <span class="kw">let </span>handle = handle.clone();
                     <span class="kw">move </span>|<span class="kw">_</span>| {
-                        <span class="kw">let _ </span>= skeleton_window(<span class="prelude-val">None</span>).open(<span class="kw-2">&amp;mut </span>app);
+                        <span class="kw">let </span>_close_guard = app.prevent_shutdown();
                         handle.request_close();
+                        <span class="kw">let _ </span>= skeleton_window(<span class="prelude-val">None</span>).open(<span class="kw-2">&amp;mut </span>app);
                     }
                 })
                 .and(<span class="string">"New Animation"</span>.into_button())
                 .and(<span class="string">"Open Existing..."</span>.into_button().on_click({
                     <span class="kw">let </span><span class="kw-2">mut </span>app = app.as_app();
                     <span class="kw">let </span>handle = handle.clone();
-                    <span class="kw">let </span>visible = visible.clone();
                     <span class="kw">move </span>|<span class="kw">_</span>| {
-                        visible.set(<span class="bool-val">false</span>);
-                        open_file(<span class="kw-2">&amp;mut </span>app, <span class="kw-2">&amp;</span>handle, <span class="bool-val">true</span>);
+                        <span class="kw">let </span>shutdown_guard = app.prevent_shutdown();
+                        open_file(<span class="kw-2">&amp;mut </span>app, <span class="kw-2">&amp;</span>handle, shutdown_guard);
+                        handle.request_close();
                     }
                 }))
                 .into_rows()
@@ -292,13 +314,11 @@
         )
         .resize_to_fit(<span class="bool-val">true</span>)
         .resizable(<span class="bool-val">false</span>)
-        .visible(visible)
 }
 
-<span class="kw">fn </span>open_file(app: <span class="kw-2">&amp;mut </span>App, parent_window: <span class="kw-2">&amp;</span>WindowHandle, close: bool) {
+<span class="kw">fn </span>open_file(app: <span class="kw-2">&amp;mut </span>App, parent_window: <span class="kw-2">&amp;</span>WindowHandle, close_guard: <span class="prelude-ty">Option</span>&lt;ShutdownGuard&gt;) {
     parent_window.execute({
         <span class="kw">let </span><span class="kw-2">mut </span>app = app.clone();
-        <span class="kw">let </span>parent_window = parent_window.clone();
         <span class="kw">move </span>|context| {
             <span class="kw">let </span>dialog = rfd::FileDialog::new()
                 .add_filter(<span class="string">"FunnyBones Skeleton (.fbs)"</span>, <span class="kw-2">&amp;</span>[<span class="string">"fbs"</span>])
@@ -311,9 +331,7 @@
                         <span class="macro">todo!</span>(<span class="string">"unknown file type"</span>);
                     }
                 }
-                <span class="kw">if </span>close {
-                    parent_window.request_close();
-                }
+                drop(close_guard);
             });
         }
     });
